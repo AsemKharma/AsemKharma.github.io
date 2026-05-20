@@ -4,6 +4,7 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Asem Kharma — Software Engineer</title>
+<link rel="icon" type="image/svg+xml" id="favicon">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Cairo:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -717,12 +718,19 @@
   /* Smooth fade when switching language */
   main.lang-fading { opacity: 0.35; transition: opacity 0.25s ease; }
 
-  /* ===== News trigger card (in hero) ===== */
-  .news-trigger {
+  /* ===== Hero floating trigger cards (News + CV) ===== */
+  .hero-floats {
     position: absolute;
     bottom: 120px;
-    right: 6vw;
-    width: 240px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 14px;
+    z-index: 5;
+  }
+
+  .hero-float {
+    width: 230px;
     background: linear-gradient(135deg, rgba(124,92,255,0.10), rgba(34,211,238,0.06));
     border: 1px solid var(--border);
     border-radius: 22px;
@@ -734,14 +742,43 @@
                 border-color 0.3s ease, background 0.3s ease;
     font-family: inherit;
     color: inherit;
-    z-index: 5;
     opacity: 0;
+    overflow: hidden;
+    position: relative;
+  }
+  .news-trigger {
     animation:
       news-trigger-in 0.8s ease-out 1.4s 1 forwards,
       news-pulse 2.6s ease-out 2.4s infinite;
-    overflow: hidden;
   }
-  .news-trigger::before {
+  .cv-trigger {
+    --cv-accent: #39ff14;
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.18), rgba(34, 238, 136, 0.10));
+    border-color: rgba(57, 255, 20, 0.22);
+    animation:
+      news-trigger-in 0.8s ease-out 1.6s 1 forwards,
+      cv-pulse 2.6s ease-out 3.7s infinite;
+  }
+  @keyframes cv-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(57, 255, 20, 0.55),
+                       0 0 18px      rgba(57, 255, 20, 0.14); }
+    70%  { box-shadow: 0 0 0 14px rgba(57, 255, 20, 0.00),
+                       0 0 18px      rgba(57, 255, 20, 0.14); }
+    100% { box-shadow: 0 0 0 14px rgba(57, 255, 20, 0.00),
+                       0 0 18px      rgba(57, 255, 20, 0.14); }
+  }
+  .cv-trigger::before {
+    background: radial-gradient(300px circle at var(--nx, 50%) var(--ny, 50%),
+                                rgba(57, 255, 20, 0.22), transparent 50%) !important;
+  }
+  .cv-trigger:hover {
+    border-color: var(--cv-accent) !important;
+    background: linear-gradient(135deg, rgba(57, 255, 20, 0.18), rgba(34, 238, 136, 0.08));
+    box-shadow: 0 0 30px rgba(57, 255, 20, 0.18);
+  }
+  .cv-trigger .nt-tag { color: var(--cv-accent); text-shadow: 0 0 10px rgba(57, 255, 20, 0.45); }
+  .cv-trigger .nt-arrow { color: var(--cv-accent); }
+  .hero-float::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -750,9 +787,9 @@
     transition: opacity 0.3s ease;
     pointer-events: none;
   }
-  .news-trigger:hover { border-color: var(--accent); transform: translateY(-3px); }
-  .news-trigger:hover::before { opacity: 1; }
-  .news-trigger .nt-tag {
+  .hero-float:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .hero-float:hover::before { opacity: 1; }
+  .hero-float .nt-tag {
     font-family: 'JetBrains Mono', monospace;
     color: var(--accent-2);
     font-size: 0.72rem;
@@ -760,26 +797,25 @@
     margin-bottom: 6px;
     display: block;
   }
-  .news-trigger .nt-title {
+  .hero-float .nt-title {
     font-size: 1.15rem;
     font-weight: 600;
     margin-bottom: 6px;
   }
-  .news-trigger .nt-sub {
+  .hero-float .nt-sub {
     color: var(--muted);
     font-size: 0.82rem;
     margin-bottom: 12px;
   }
-  .news-trigger .nt-arrow {
+  .hero-float .nt-arrow {
     color: var(--accent);
     font-size: 1.2rem;
     transition: transform 0.3s ease;
     display: inline-block;
   }
-  .news-trigger:hover .nt-arrow { transform: translateX(6px); }
-  [dir="rtl"] .news-trigger .nt-arrow { transform: scaleX(-1); }
-  [dir="rtl"] .news-trigger:hover .nt-arrow { transform: scaleX(-1) translateX(6px); }
-  [dir="rtl"] .news-trigger { right: auto; left: 6vw; }
+  .hero-float:hover .nt-arrow { transform: translateX(6px); }
+  [dir="rtl"] .hero-float .nt-arrow { transform: scaleX(-1); }
+  [dir="rtl"] .hero-float:hover .nt-arrow { transform: scaleX(-1) translateX(6px); }
 
   @keyframes news-trigger-in {
     to { opacity: 1; }
@@ -795,22 +831,22 @@
                        0 0 14px      rgba(124, 92, 255, 0.08); }
   }
 
-  /* Mobile: shrink and reposition, but stay absolutely floating (no static, no layout push) */
+  /* Smaller screens: keep cards side-by-side, just shrink them progressively */
   @media (max-width: 980px) {
-    .news-trigger {
-      top: auto;
-      bottom: 90px;
-      right: 5vw;
-      width: 200px;
-      padding: 16px 18px;
-    }
-    [dir="rtl"] .news-trigger { right: auto; left: 5vw; }
-    .news-trigger .nt-sub { display: none; }
+    .hero-floats { bottom: 90px; gap: 10px; }
+    .hero-float { width: 200px; padding: 14px 16px; }
+    .hero-float .nt-sub { display: none; }
+  }
+  @media (max-width: 700px) {
+    .hero-float { width: 160px; padding: 12px 14px; }
+    .hero-float .nt-title { font-size: 1rem; }
   }
   @media (max-width: 480px) {
-    .news-trigger { width: 168px; padding: 12px 14px; bottom: 78px; }
-    .news-trigger .nt-title { font-size: 1rem; }
-    .news-trigger .nt-tag { font-size: 0.68rem; }
+    .hero-floats { bottom: 78px; gap: 8px; }
+    .hero-float { width: 132px; padding: 10px 12px; border-radius: 18px; }
+    .hero-float .nt-title { font-size: 0.88rem; }
+    .hero-float .nt-tag { font-size: 0.62rem; }
+    .hero-float .nt-arrow { font-size: 1rem; margin-top: 4px; }
   }
 
   /* ===== Slide-out main / Slide-in news ===== */
@@ -999,6 +1035,137 @@
   .news-post-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
   .news-post-excerpt { color: #b8bdcc; font-size: 0.92rem; }
 
+  /* ===== CV inline modal ===== */
+  #cv-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 32px;
+  }
+  #cv-modal.open { display: flex; }
+  .cv-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 6, 10, 0.72);
+    backdrop-filter: blur(8px);
+    animation: cv-fade-in 0.3s ease;
+  }
+  .cv-modal-card {
+    position: relative;
+    width: min(1100px, 100%);
+    height: min(900px, 92vh);
+    background: var(--bg-2);
+    border: 1px solid rgba(57, 255, 20, 0.25);
+    border-radius: 18px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.5), 0 0 80px rgba(57, 255, 20, 0.18);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    animation: cv-rise-in 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .cv-modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    background: rgba(255, 255, 255, 0.02);
+  }
+  .cv-modal-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .cv-modal-title .cv-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #39ff14;
+    box-shadow: 0 0 12px rgba(57, 255, 20, 0.75), 0 0 22px rgba(57, 255, 20, 0.35);
+  }
+  .cv-modal-actions { display: flex; gap: 8px; }
+  .cv-modal-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.85rem;
+    padding: 8px 14px;
+    border-radius: 999px;
+    cursor: pointer;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    transition: all 0.25s ease;
+  }
+  .cv-modal-btn:hover {
+    border-color: #39ff14;
+    background: rgba(57, 255, 20, 0.10);
+    color: #c8ffb6;
+  }
+  .cv-modal-close {
+    width: 36px; height: 36px;
+    padding: 0;
+    border-radius: 50%;
+    justify-content: center;
+    font-size: 1.1rem;
+  }
+  .cv-modal-body {
+    flex: 1;
+    position: relative;
+    background: #1a1a22;
+  }
+  .cv-modal-body iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    display: block;
+  }
+  .cv-modal-loading {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--muted);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.85rem;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+  }
+  .cv-modal-loading .cv-spin {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: 2.5px solid rgba(255,255,255,0.08);
+    border-top-color: #39ff14;
+    box-shadow: 0 0 18px rgba(57, 255, 20, 0.35);
+    animation: cv-spin 0.8s linear infinite;
+    margin-bottom: 12px;
+  }
+  #cv-modal.loaded .cv-modal-loading { opacity: 0; }
+  body.cv-open { overflow: hidden; }
+
+  @keyframes cv-fade-in {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes cv-rise-in {
+    from { opacity: 0; transform: translateY(20px) scale(0.98); }
+    to   { opacity: 1; transform: translateY(0)    scale(1); }
+  }
+  @keyframes cv-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  @media (max-width: 700px) {
+    #cv-modal { padding: 0; }
+    .cv-modal-card { width: 100%; height: 100%; border-radius: 0; border: none; }
+  }
+
   /* ===== Custom cursor ===== */
   @media (hover: hover) and (pointer: fine) {
     body, body * { cursor: none !important; }
@@ -1156,12 +1323,20 @@
     <a href="https://linkedin.com/in/asem-kharma" target="_blank">in / asem-kharma</a>
     <a href="https://github.com/AsemKharma" target="_blank">gh / AsemKharma</a>
   </div>
-  <button type="button" id="news-trigger" class="news-trigger" aria-label="Open news panel">
-    <span class="nt-tag" data-i18n="news.trigger.tag">// LATEST</span>
-    <div class="nt-title" data-i18n="news.trigger.title">News &amp; Updates</div>
-    <div class="nt-sub" data-i18n="news.trigger.sub">Posts, talks, and milestones</div>
-    <span class="nt-arrow">→</span>
-  </button>
+  <div class="hero-floats">
+    <button type="button" id="news-trigger" class="hero-float news-trigger" aria-label="Open news panel">
+      <span class="nt-tag" data-i18n="news.trigger.tag">// LATEST</span>
+      <div class="nt-title" data-i18n="news.trigger.title">News &amp; Updates</div>
+      <div class="nt-sub" data-i18n="news.trigger.sub">Posts, talks, and milestones</div>
+      <span class="nt-arrow">→</span>
+    </button>
+    <button type="button" id="cv-trigger" class="hero-float cv-trigger" aria-label="Open CV inline">
+      <span class="nt-tag" data-i18n="cv.trigger.tag">// CV</span>
+      <div class="nt-title" data-i18n="cv.trigger.title">View résumé</div>
+      <div class="nt-sub" data-i18n="cv.trigger.sub">Full CV as PDF — opens inline</div>
+      <span class="nt-arrow">↗</span>
+    </button>
+  </div>
 
   <div class="scroll-hint" data-i18n="hero.scroll">SCROLL ↓</div>
 </section>
@@ -1435,6 +1610,34 @@
 <!-- News panel — empty until first open, lazy-rendered from template below -->
 <aside id="news-panel" aria-hidden="true"></aside>
 
+<!-- CV inline modal — iframe src is set only on first open (lazy load) -->
+<div id="cv-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title">
+  <div class="cv-modal-backdrop"></div>
+  <div class="cv-modal-card">
+    <div class="cv-modal-head">
+      <div class="cv-modal-title" id="cv-modal-title">
+        <span class="cv-dot"></span>
+        <span data-i18n="cv.modal.title">Asem Kharma — CV</span>
+      </div>
+      <div class="cv-modal-actions">
+        <a class="cv-modal-btn" id="cv-download" href="Asem_Kharma_CV_German-.pdf" download="Asem_Kharma_CV_German-.pdf">
+          <span data-i18n="cv.modal.download">Download</span>
+        </a>
+        <button type="button" class="cv-modal-btn cv-modal-close" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="cv-modal-body">
+      <div class="cv-modal-loading">
+        <div style="display:flex;flex-direction:column;align-items:center;">
+          <div class="cv-spin"></div>
+          <span data-i18n="cv.modal.loading">Loading résumé…</span>
+        </div>
+      </div>
+      <iframe id="cv-frame" title="Asem Kharma CV"></iframe>
+    </div>
+  </div>
+</div>
+
 <template id="news-template">
   <div class="news-wrap">
     <div class="news-head">
@@ -1615,6 +1818,13 @@ const I18N = {
     "news.trigger.tag": "// LATEST",
     "news.trigger.title": "News & Updates",
     "news.trigger.sub": "Posts, talks, and milestones",
+    "cv.trigger.tag": "// CV",
+    "cv.trigger.title": "View résumé",
+    "cv.trigger.sub": "Full CV as PDF — opens inline",
+    "cv.modal.title": "Asem Kharma — CV",
+    "cv.modal.download": "Download",
+    "cv.modal.openTab": "Open in new tab",
+    "cv.modal.loading": "Loading résumé…",
     "news.back": "Back",
     "news.pageTag": "// LATEST UPDATES",
     "news.pageTitle": "News & Posts",
@@ -1742,6 +1952,13 @@ const I18N = {
     "news.trigger.tag": "// AKTUELL",
     "news.trigger.title": "News & Updates",
     "news.trigger.sub": "Beiträge, Vorträge und Meilensteine",
+    "cv.trigger.tag": "// LEBENSLAUF",
+    "cv.trigger.title": "Lebenslauf ansehen",
+    "cv.trigger.sub": "Vollständiger Lebenslauf als PDF — direkt im Browser",
+    "cv.modal.title": "Asem Kharma — Lebenslauf",
+    "cv.modal.download": "Herunterladen",
+    "cv.modal.openTab": "In neuem Tab öffnen",
+    "cv.modal.loading": "Lebenslauf wird geladen…",
     "news.back": "Zurück",
     "news.pageTag": "// AKTUELLE UPDATES",
     "news.pageTitle": "News & Beiträge",
@@ -1869,6 +2086,13 @@ const I18N = {
     "news.trigger.tag": "// الأحدث",
     "news.trigger.title": "أخبار وتحديثات",
     "news.trigger.sub": "منشورات، لقاءات، ومحطات مهمة",
+    "cv.trigger.tag": "// السيرة الذاتية",
+    "cv.trigger.title": "عرض السيرة الذاتية",
+    "cv.trigger.sub": "السيرة الكاملة بصيغة PDF — تُفتح هنا مباشرة",
+    "cv.modal.title": "عاصم خرما — السيرة الذاتية",
+    "cv.modal.download": "تنزيل",
+    "cv.modal.openTab": "فتح في تبويب جديد",
+    "cv.modal.loading": "جاري تحميل السيرة الذاتية…",
     "news.back": "رجوع",
     "news.pageTag": "// آخر التحديثات",
     "news.pageTitle": "الأخبار والمنشورات",
@@ -1933,6 +2157,60 @@ const stored = (() => { try { return localStorage.getItem('cv-lang'); } catch { 
 const initial = stored || (navigator.language || 'en').slice(0, 2);
 const safe = ['en', 'de', 'ar'].includes(initial) ? initial : 'en';
 applyLang(safe);
+</script>
+
+<script>
+// ===================== ANIMATED FAVICON (4-frame rotation, swapped every 250ms) =====================
+(function () {
+  const link = document.getElementById('favicon');
+  if (!link) return;
+
+  // One SVG factory — each frame rotates the gradient arc by `angle` degrees around the centered "A".
+  const buildFrame = (angle) => `
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0"   stop-color="#7c5cff"/>
+      <stop offset="0.5" stop-color="#22d3ee"/>
+      <stop offset="1"   stop-color="#f472b6"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#05060a"/>
+  <circle cx="32" cy="32" r="24" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="2"/>
+  <g transform="rotate(${angle} 32 32)">
+    <path d="M 56 32 A 24 24 0 0 1 32 56" fill="none" stroke="url(#g)" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="56" cy="32" r="3.2" fill="#f472b6"/>
+  </g>
+  <text x="32" y="41" font-family="'Space Grotesk', system-ui, sans-serif"
+        font-weight="700" font-size="26" fill="#ffffff" text-anchor="middle"
+        letter-spacing="-1">A</text>
+</svg>`.trim();
+
+  // 8 frames at 45° steps — encoded once, reused forever.
+  const frames = [0, 45, 90, 135, 180, 225, 270, 315].map(
+    (a) => 'data:image/svg+xml;utf8,' + encodeURIComponent(buildFrame(a))
+  );
+
+  // Chromium throttles favicon updates when you only mutate `href` on the same <link>.
+  // Removing the old <link> and inserting a fresh one each tick bypasses the throttle.
+  function swap(href) {
+    const old = document.getElementById('favicon');
+    if (old) old.remove();
+    const fresh = document.createElement('link');
+    fresh.id = 'favicon';
+    fresh.rel = 'icon';
+    fresh.type = 'image/svg+xml';
+    fresh.href = href;
+    document.head.appendChild(fresh);
+  }
+
+  let i = 0;
+  swap(frames[0]);
+  setInterval(() => {
+    i = (i + 1) % frames.length;
+    swap(frames[i]);
+  }, 125);
+})();
 </script>
 
 <script type="importmap">
@@ -2325,9 +2603,44 @@ document.querySelectorAll('nav a[href^="#"]').forEach(a => {
   });
 });
 
-// ESC closes news
+// ===================== CV INLINE MODAL (lazy-loaded) =====================
+const cvTrigger = document.getElementById('cv-trigger');
+const cvModal = document.getElementById('cv-modal');
+const cvFrame = document.getElementById('cv-frame');
+const CV_URL = 'Asem_Kharma_CV_German-.pdf';
+let cvLoaded = false;
+
+function openCv() {
+  if (!cvModal || !cvFrame) return;
+  if (!cvLoaded) {
+    // Only fetch the PDF when the user actually clicks
+    cvFrame.src = CV_URL + '#view=FitH';
+    cvFrame.addEventListener('load', () => {
+      cvModal.classList.add('loaded');
+    }, { once: true });
+    cvLoaded = true;
+  }
+  cvModal.classList.add('open');
+  cvModal.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('cv-open');
+}
+function closeCv() {
+  if (!cvModal) return;
+  cvModal.classList.remove('open');
+  cvModal.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('cv-open');
+}
+if (cvTrigger) cvTrigger.addEventListener('click', openCv);
+if (cvModal) {
+  cvModal.querySelector('.cv-modal-close')?.addEventListener('click', closeCv);
+  cvModal.querySelector('.cv-modal-backdrop')?.addEventListener('click', closeCv);
+}
+
+// Closing keys: ESC closes whichever overlay is open
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && document.body.classList.contains('news-open')) closeNews();
+  if (e.key !== 'Escape') return;
+  if (cvModal && cvModal.classList.contains('open')) { closeCv(); return; }
+  if (document.body.classList.contains('news-open')) closeNews();
 });
 
 // Redraw the route when viewport changes while news is open
