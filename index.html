@@ -33,6 +33,56 @@
   }
   ::selection { background: var(--accent); color: #fff; }
 
+  /* ===== Custom scrollbar ===== */
+  html {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(124, 92, 255, 0.6) transparent;
+  }
+  ::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+  }
+  ::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-left: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  [dir="rtl"] ::-webkit-scrollbar-track {
+    border-left: none;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: linear-gradient(180deg, #7c5cff 0%, #22d3ee 100%);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    box-shadow: inset 0 0 6px rgba(124, 92, 255, 0.4);
+    transition: background 0.25s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(180deg, #a78bfa 0%, #f472b6 100%);
+    background-clip: padding-box;
+    box-shadow: inset 0 0 8px rgba(244, 114, 182, 0.45);
+  }
+  ::-webkit-scrollbar-thumb:active {
+    background: linear-gradient(180deg, #f472b6 0%, #22d3ee 100%);
+    background-clip: padding-box;
+  }
+  ::-webkit-scrollbar-corner { background: transparent; }
+
+  /* ===== Scroll progress bar (top) ===== */
+  #scroll-progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 2px;
+    width: 0%;
+    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent-3));
+    z-index: 200;
+    box-shadow: 0 0 10px rgba(124, 92, 255, 0.55), 0 0 20px rgba(34, 211, 238, 0.35);
+    pointer-events: none;
+    will-change: width;
+  }
+  [dir="rtl"] #scroll-progress { left: auto; right: 0; }
+
   /* Three.js canvas */
   #bg-canvas {
     position: fixed;
@@ -667,6 +717,288 @@
   /* Smooth fade when switching language */
   main.lang-fading { opacity: 0.35; transition: opacity 0.25s ease; }
 
+  /* ===== News trigger card (in hero) ===== */
+  .news-trigger {
+    position: absolute;
+    bottom: 120px;
+    right: 6vw;
+    width: 240px;
+    background: linear-gradient(135deg, rgba(124,92,255,0.10), rgba(34,211,238,0.06));
+    border: 1px solid var(--border);
+    border-radius: 22px;
+    padding: 22px 24px;
+    text-align: left;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: transform 0.35s cubic-bezier(0.2, 0.8, 0.2, 1),
+                border-color 0.3s ease, background 0.3s ease;
+    font-family: inherit;
+    color: inherit;
+    z-index: 5;
+    opacity: 0;
+    animation:
+      news-trigger-in 0.8s ease-out 1.4s 1 forwards,
+      news-pulse 2.6s ease-out 2.4s infinite;
+    overflow: hidden;
+  }
+  .news-trigger::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(300px circle at var(--nx, 50%) var(--ny, 50%), rgba(124,92,255,0.18), transparent 50%);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+  }
+  .news-trigger:hover { border-color: var(--accent); transform: translateY(-3px); }
+  .news-trigger:hover::before { opacity: 1; }
+  .news-trigger .nt-tag {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-2);
+    font-size: 0.72rem;
+    letter-spacing: 0.15em;
+    margin-bottom: 6px;
+    display: block;
+  }
+  .news-trigger .nt-title {
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .news-trigger .nt-sub {
+    color: var(--muted);
+    font-size: 0.82rem;
+    margin-bottom: 12px;
+  }
+  .news-trigger .nt-arrow {
+    color: var(--accent);
+    font-size: 1.2rem;
+    transition: transform 0.3s ease;
+    display: inline-block;
+  }
+  .news-trigger:hover .nt-arrow { transform: translateX(6px); }
+  [dir="rtl"] .news-trigger .nt-arrow { transform: scaleX(-1); }
+  [dir="rtl"] .news-trigger:hover .nt-arrow { transform: scaleX(-1) translateX(6px); }
+  [dir="rtl"] .news-trigger { right: auto; left: 6vw; }
+
+  @keyframes news-trigger-in {
+    to { opacity: 1; }
+  }
+
+  /* Pulse: expanding purple halo that fades — uses box-shadow so it never reflows layout */
+  @keyframes news-pulse {
+    0%   { box-shadow: 0 0 0 0   rgba(124, 92, 255, 0.50),
+                       0 0 14px      rgba(124, 92, 255, 0.08); }
+    70%  { box-shadow: 0 0 0 14px rgba(124, 92, 255, 0.00),
+                       0 0 14px      rgba(124, 92, 255, 0.08); }
+    100% { box-shadow: 0 0 0 14px rgba(124, 92, 255, 0.00),
+                       0 0 14px      rgba(124, 92, 255, 0.08); }
+  }
+
+  /* Mobile: shrink and reposition, but stay absolutely floating (no static, no layout push) */
+  @media (max-width: 980px) {
+    .news-trigger {
+      top: auto;
+      bottom: 90px;
+      right: 5vw;
+      width: 200px;
+      padding: 16px 18px;
+    }
+    [dir="rtl"] .news-trigger { right: auto; left: 5vw; }
+    .news-trigger .nt-sub { display: none; }
+  }
+  @media (max-width: 480px) {
+    .news-trigger { width: 168px; padding: 12px 14px; bottom: 78px; }
+    .news-trigger .nt-title { font-size: 1rem; }
+    .news-trigger .nt-tag { font-size: 0.68rem; }
+  }
+
+  /* ===== Slide-out main / Slide-in news ===== */
+  #main, footer {
+    transition: transform 0.7s cubic-bezier(0.7, 0, 0.25, 1), opacity 0.4s ease;
+    will-change: transform;
+  }
+  body.news-open { overflow: hidden; }
+  body.news-open #main, body.news-open footer {
+    transform: translateX(-100vw);
+    pointer-events: none;
+  }
+  [dir="rtl"] body.news-open #main, [dir="rtl"] body.news-open footer {
+    transform: translateX(100vw);
+  }
+  body.news-open #scroll-progress { opacity: 0; transition: opacity 0.3s ease; }
+
+  #news-panel {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 110px 6vw 80px;
+    transform: translateX(100%);
+    transition: transform 0.7s cubic-bezier(0.7, 0, 0.25, 1);
+    background: transparent;
+    pointer-events: none;
+  }
+  [dir="rtl"] #news-panel { transform: translateX(-100%); }
+  body.news-open #news-panel {
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .news-wrap { max-width: 1200px; margin: 0 auto; }
+  .news-head { margin-bottom: 60px; }
+  .news-back-btn {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid var(--border);
+    color: var(--ink);
+    font-family: inherit;
+    font-size: 0.9rem;
+    padding: 10px 20px;
+    border-radius: 999px;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 32px;
+    transition: all 0.3s ease;
+  }
+  .news-back-btn:hover {
+    border-color: var(--accent);
+    background: rgba(124,92,255,0.10);
+    transform: translateX(-4px);
+  }
+  [dir="rtl"] .news-back-btn:hover { transform: translateX(4px); }
+  [dir="rtl"] .news-back-btn .news-back-arrow { transform: scaleX(-1); }
+  .news-page-title {
+    font-size: clamp(2.2rem, 5vw, 4rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    margin: 10px 0 6px;
+    background: linear-gradient(135deg, #fff 30%, #8a90a3 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    line-height: 1.05;
+  }
+  .news-page-sub { color: var(--muted); font-size: 1.05rem; max-width: 620px; }
+
+  /* ===== News map (route-style timeline) ===== */
+  .news-map {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 90px;
+    padding: 24px 0 60px;
+  }
+  .news-map-paths {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    overflow: visible;
+  }
+  .news-map-line {
+    fill: none;
+    stroke: url(#newsPathGrad);
+    stroke-width: 2;
+    stroke-dasharray: 6 8;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 6px rgba(124, 92, 255, 0.45));
+    animation: news-path-flow 3s linear infinite;
+  }
+  @keyframes news-path-flow {
+    to { stroke-dashoffset: -28; }
+  }
+  .news-post {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    transition: transform 0.35s ease, border-color 0.3s ease, box-shadow 0.4s ease;
+  }
+  .news-post:hover { transform: translateY(-4px); border-color: var(--accent); }
+  .news-map article.news-post {
+    position: relative;
+    z-index: 1;
+    width: 62%;
+  }
+  .news-map article.news-post:nth-of-type(odd)  { align-self: flex-start; }
+  .news-map article.news-post:nth-of-type(even) { align-self: flex-end; }
+
+  .news-post-pin {
+    position: absolute;
+    top: 24px;
+    width: 46px;
+    height: 46px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    font-size: 0.82rem;
+    color: #fff;
+    z-index: 3;
+    box-shadow:
+      0 0 0 4px var(--bg),
+      0 0 0 5px rgba(124, 92, 255, 0.55),
+      0 0 26px rgba(124, 92, 255, 0.55);
+  }
+  .news-post-pin::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 1.5px solid rgba(124, 92, 255, 0.55);
+    animation: news-pin-pulse 2.2s ease-out infinite;
+    pointer-events: none;
+  }
+  @keyframes news-pin-pulse {
+    0%   { transform: scale(1); opacity: 0.8; }
+    100% { transform: scale(1.6); opacity: 0; }
+  }
+  .news-map article.news-post:nth-of-type(odd)  .news-post-pin {
+    inset-inline-end: -23px; inset-inline-start: auto;
+  }
+  .news-map article.news-post:nth-of-type(even) .news-post-pin {
+    inset-inline-start: -23px; inset-inline-end: auto;
+  }
+
+  @media (max-width: 760px) {
+    .news-map { gap: 56px; padding-top: 12px; }
+    .news-map article.news-post { width: 100%; }
+    .news-map article.news-post:nth-of-type(odd),
+    .news-map article.news-post:nth-of-type(even) { align-self: stretch; }
+    .news-map article.news-post:nth-of-type(odd)  .news-post-pin,
+    .news-map article.news-post:nth-of-type(even) .news-post-pin {
+      inset-inline-start: -14px; inset-inline-end: auto;
+      top: -18px; width: 40px; height: 40px;
+    }
+  }
+  .news-post-media {
+    aspect-ratio: 16/9;
+    background:
+      linear-gradient(135deg, rgba(124,92,255,0.18), rgba(34,211,238,0.12)),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.02) 0 12px, transparent 12px 24px);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem;
+    opacity: 0.85;
+  }
+  .news-post-body { padding: 22px 24px; }
+  .news-post-date {
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-bottom: 8px;
+    letter-spacing: 0.05em;
+  }
+  .news-post-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
+  .news-post-excerpt { color: #b8bdcc; font-size: 0.92rem; }
+
   /* ===== Custom cursor ===== */
   @media (hover: hover) and (pointer: fine) {
     body, body * { cursor: none !important; }
@@ -787,6 +1119,7 @@
 
 <canvas id="bg-canvas"></canvas>
 <div class="bg-gradient"></div>
+<div id="scroll-progress"></div>
 <div id="cursor-aura"></div>
 <div id="cursor-ring"></div>
 <div id="cursor-core"></div>
@@ -823,6 +1156,13 @@
     <a href="https://linkedin.com/in/asem-kharma" target="_blank">in / asem-kharma</a>
     <a href="https://github.com/AsemKharma" target="_blank">gh / AsemKharma</a>
   </div>
+  <button type="button" id="news-trigger" class="news-trigger" aria-label="Open news panel">
+    <span class="nt-tag" data-i18n="news.trigger.tag">// LATEST</span>
+    <div class="nt-title" data-i18n="news.trigger.title">News &amp; Updates</div>
+    <div class="nt-sub" data-i18n="news.trigger.sub">Posts, talks, and milestones</div>
+    <span class="nt-arrow">→</span>
+  </button>
+
   <div class="scroll-hint" data-i18n="hero.scroll">SCROLL ↓</div>
 </section>
 
@@ -1092,6 +1432,70 @@
 
 <footer data-i18n="footer">Designed & built by Asem Kharma · &lt;coded with three.js&gt;</footer>
 
+<!-- News panel — empty until first open, lazy-rendered from template below -->
+<aside id="news-panel" aria-hidden="true"></aside>
+
+<template id="news-template">
+  <div class="news-wrap">
+    <div class="news-head">
+      <button type="button" id="news-back" class="news-back-btn" aria-label="Back to main page">
+        <span class="news-back-arrow">←</span>
+        <span data-i18n="news.back">Back</span>
+      </button>
+      <span class="hero-tag" data-i18n="news.pageTag">// LATEST UPDATES</span>
+      <h1 class="news-page-title" data-i18n="news.pageTitle">News &amp; Posts</h1>
+      <p class="news-page-sub" data-i18n="news.pageSub">Updates, talks, and milestones — posts and images will appear here over time.</p>
+    </div>
+    <div class="news-map">
+      <svg class="news-map-paths" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="newsPathGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0"   stop-color="#7c5cff"/>
+            <stop offset="0.5" stop-color="#22d3ee"/>
+            <stop offset="1"   stop-color="#f472b6"/>
+          </linearGradient>
+        </defs>
+      </svg>
+      <article class="news-post">
+        <span class="news-post-pin">01</span>
+        <div class="news-post-media">📰</div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
+          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
+          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">02</span>
+        <div class="news-post-media">✨</div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
+          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
+          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">03</span>
+        <div class="news-post-media">🚀</div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
+          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
+          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">04</span>
+        <div class="news-post-media">💡</div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
+          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
+          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+        </div>
+      </article>
+    </div>
+  </div>
+</template>
+
 <script>
 // ===================== TRANSLATIONS =====================
 const I18N = {
@@ -1207,6 +1611,17 @@ const I18N = {
     "contact.title": "Let's build something.",
     "contact.body": "Open to backend, distributed-systems, and full-stack roles in Germany — and to collaborations anywhere on systems that need to scale well and stay maintainable.",
     "contact.btn": "Get in touch",
+
+    "news.trigger.tag": "// LATEST",
+    "news.trigger.title": "News & Updates",
+    "news.trigger.sub": "Posts, talks, and milestones",
+    "news.back": "Back",
+    "news.pageTag": "// LATEST UPDATES",
+    "news.pageTitle": "News & Posts",
+    "news.pageSub": "Updates, talks, and milestones — posts and images will appear here over time.",
+    "news.soonDate": "COMING SOON",
+    "news.soonTitle": "First post on the way",
+    "news.soonExcerpt": "A short summary of the post will live here. Text, images, and links will be added as posts are published.",
 
     "footer": "Designed & built by Asem Kharma · <coded with three.js>"
   },
@@ -1324,6 +1739,17 @@ const I18N = {
     "contact.body": "Offen für Stellen im Backend, Distributed Systems und Full-Stack in Deutschland — und für Kooperationen überall dort, wo Systeme skalierbar und wartbar bleiben sollen.",
     "contact.btn": "Kontakt aufnehmen",
 
+    "news.trigger.tag": "// AKTUELL",
+    "news.trigger.title": "News & Updates",
+    "news.trigger.sub": "Beiträge, Vorträge und Meilensteine",
+    "news.back": "Zurück",
+    "news.pageTag": "// AKTUELLE UPDATES",
+    "news.pageTitle": "News & Beiträge",
+    "news.pageSub": "Updates, Vorträge und Meilensteine — Beiträge und Bilder erscheinen hier mit der Zeit.",
+    "news.soonDate": "DEMNÄCHST",
+    "news.soonTitle": "Erster Beitrag in Kürze",
+    "news.soonExcerpt": "Hier erscheint eine kurze Zusammenfassung. Text, Bilder und Links werden ergänzt, sobald Beiträge veröffentlicht sind.",
+
     "footer": "Entworfen & gebaut von Asem Kharma · <coded with three.js>"
   },
 
@@ -1440,13 +1866,26 @@ const I18N = {
     "contact.body": "متاح لفرص في الـ backend والأنظمة الموزعة والـ full-stack في ألمانيا — وللتعاون في أي مكان يحتاج إلى أنظمة قابلة للتوسع والصيانة.",
     "contact.btn": "تواصل معي",
 
+    "news.trigger.tag": "// الأحدث",
+    "news.trigger.title": "أخبار وتحديثات",
+    "news.trigger.sub": "منشورات، لقاءات، ومحطات مهمة",
+    "news.back": "رجوع",
+    "news.pageTag": "// آخر التحديثات",
+    "news.pageTitle": "الأخبار والمنشورات",
+    "news.pageSub": "تحديثات ومحطات ومنشورات — ستُضاف هنا مع الوقت نصاً وصوراً وروابط.",
+    "news.soonDate": "قريباً",
+    "news.soonTitle": "أول منشور قادم",
+    "news.soonExcerpt": "هنا سيظهر ملخص قصير للمنشور. سيُضاف النص والصور والروابط مع نشر المحتوى لاحقاً.",
+
     "footer": "تصميم وبرمجة: عاصم خرما · <coded with three.js>"
   }
 };
 
 // ===================== I18N ENGINE =====================
+window.__currentLang__ = 'en';
 function applyLang(lang) {
   const dict = I18N[lang] || I18N.en;
+  window.__currentLang__ = lang;
   document.documentElement.lang = lang;
   document.documentElement.dir = (lang === 'ar') ? 'rtl' : 'ltr';
   document.body.setAttribute('data-lang', lang);
@@ -1481,6 +1920,10 @@ document.querySelectorAll('#lang-switch button').forEach(btn => {
     setTimeout(() => {
       applyLang(btn.dataset.lang);
       main.classList.remove('lang-fading');
+      // If news is open, redraw the route after layout reflows for the new language
+      if (document.body.classList.contains('news-open') && window.__drawNewsMap__) {
+        requestAnimationFrame(() => requestAnimationFrame(window.__drawNewsMap__));
+      }
     }, 200);
   });
 });
@@ -1609,7 +2052,15 @@ window.addEventListener('mousemove', (e) => {
 });
 
 let scrollY = 0;
-window.addEventListener('scroll', () => { scrollY = window.scrollY; });
+const progressEl = document.getElementById('scroll-progress');
+window.addEventListener('scroll', () => {
+  scrollY = window.scrollY;
+  if (progressEl) {
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = max > 0 ? (scrollY / max) * 100 : 0;
+    progressEl.style.width = pct + '%';
+  }
+}, { passive: true });
 
 const clock = new THREE.Clock();
 function tick() {
@@ -1665,9 +2116,12 @@ const aura = document.getElementById('cursor-aura');
 const core = document.getElementById('cursor-core');
 const ring = document.getElementById('cursor-ring');
 
+// Cursor state — declared at outer scope so news code can also bind via functions below
+let bindMagnets = (els) => {};   // no-op on touch devices
+let bindClickables = (els) => {}; // no-op on touch devices
+
 if (aura && core && ring && window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
   let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-  // separate easers: core snaps fast, ring trails, aura drifts
   let cx = mx, cy = my;
   let rx = mx, ry = my;
   let ax = mx, ay = my;
@@ -1705,48 +2159,50 @@ if (aura && core && ring && window.matchMedia('(hover: hover) and (pointer: fine
     targetOpacity = activeBox ? 0 : 1;
   });
 
-  // hide native cursor on inputs/links too — they're already covered by global rule
-  // Magnet boxes — aura gets absorbed, cursor goes "absorbed" mode
-  const magnets = document.querySelectorAll('.exp-item, .stat, .proj-card, .skill-cat, .edu-card, .lang-card');
-  magnets.forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      activeBox = el;
-      el.classList.add('aura-eating');
-      document.body.classList.add('cursor-absorbed');
-      document.body.classList.remove('cursor-interactive');
-      targetScale = 0.12;
-      targetOpacity = 0;
+  bindMagnets = (els) => {
+    els.forEach(el => {
+      if (el.dataset.magnetBound) return;
+      el.dataset.magnetBound = '1';
+      el.addEventListener('mouseenter', () => {
+        activeBox = el;
+        el.classList.add('aura-eating');
+        document.body.classList.add('cursor-absorbed');
+        document.body.classList.remove('cursor-interactive');
+        targetScale = 0.12;
+        targetOpacity = 0;
+      });
+      el.addEventListener('mouseleave', () => {
+        el.classList.remove('aura-eating');
+        if (activeBox === el) activeBox = null;
+        document.body.classList.remove('cursor-absorbed');
+        targetScale = 1;
+        targetOpacity = 1;
+      });
     });
-    el.addEventListener('mouseleave', () => {
-      el.classList.remove('aura-eating');
-      if (activeBox === el) activeBox = null;
-      document.body.classList.remove('cursor-absorbed');
-      targetScale = 1;
-      targetOpacity = 1;
+  };
+  bindClickables = (els) => {
+    els.forEach(el => {
+      if (el.dataset.clickableBound) return;
+      el.dataset.clickableBound = '1';
+      el.addEventListener('mouseenter', () => {
+        if (!document.body.classList.contains('cursor-absorbed'))
+          document.body.classList.add('cursor-interactive');
+      });
+      el.addEventListener('mouseleave', () => {
+        document.body.classList.remove('cursor-interactive');
+      });
     });
-  });
+  };
 
-  // Other interactive elements — just the ring grows
-  const clickables = document.querySelectorAll('a, button');
-  clickables.forEach(el => {
-    el.addEventListener('mouseenter', () => {
-      if (!document.body.classList.contains('cursor-absorbed'))
-        document.body.classList.add('cursor-interactive');
-    });
-    el.addEventListener('mouseleave', () => {
-      document.body.classList.remove('cursor-interactive');
-    });
-  });
+  bindMagnets(document.querySelectorAll('.exp-item, .stat, .proj-card, .skill-cat, .edu-card, .lang-card'));
+  bindClickables(document.querySelectorAll('a, button'));
 
   function tickAura() {
-    // core follows exactly (fast easing)
     cx += (mx - cx) * 0.45;
     cy += (my - cy) * 0.45;
-    // ring trails behind
     rx += (mx - rx) * 0.18;
     ry += (my - ry) * 0.18;
 
-    // aura position — pulls toward box center when absorbed
     let tx, ty;
     if (activeBox) {
       const r = activeBox.getBoundingClientRect();
@@ -1769,6 +2225,118 @@ if (aura && core && ring && window.matchMedia('(hover: hover) and (pointer: fine
   }
   tickAura();
 }
+
+// ===================== NEWS PANEL (lazy-rendered) =====================
+const newsTrigger = document.getElementById('news-trigger');
+const newsPanel = document.getElementById('news-panel');
+let newsLoaded = false;
+
+// Draws cubic-bezier dashed paths between consecutive pins.
+function drawNewsMap() {
+  if (!newsPanel) return;
+  const map = newsPanel.querySelector('.news-map');
+  if (!map) return;
+  const svg = map.querySelector('.news-map-paths');
+  if (!svg) return;
+  const pins = [...map.querySelectorAll('.news-post-pin')];
+  // Remove old path
+  const old = svg.querySelector('path.news-map-line');
+  if (old) old.remove();
+  if (pins.length < 2) return;
+
+  const mapRect = map.getBoundingClientRect();
+  const w = Math.max(mapRect.width, 1);
+  const h = Math.max(mapRect.height, 1);
+  svg.setAttribute('viewBox', `0 0 ${w} ${h}`);
+  svg.setAttribute('width', w);
+  svg.setAttribute('height', h);
+
+  let d = '';
+  pins.forEach((pin, i) => {
+    const r = pin.getBoundingClientRect();
+    const cx = r.left - mapRect.left + r.width / 2;
+    const cy = r.top  - mapRect.top  + r.height / 2;
+    if (i === 0) {
+      d += `M ${cx.toFixed(1)} ${cy.toFixed(1)} `;
+    } else {
+      const p = pins[i - 1].getBoundingClientRect();
+      const px = p.left - mapRect.left + p.width / 2;
+      const py = p.top  - mapRect.top  + p.height / 2;
+      const dy = cy - py;
+      // vertical S-curve: control points on each end's x, offset vertically
+      const c1x = px, c1y = py + dy * 0.55;
+      const c2x = cx, c2y = cy - dy * 0.55;
+      d += `C ${c1x.toFixed(1)} ${c1y.toFixed(1)}, ${c2x.toFixed(1)} ${c2y.toFixed(1)}, ${cx.toFixed(1)} ${cy.toFixed(1)} `;
+    }
+  });
+
+  const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+  path.setAttribute('class', 'news-map-line');
+  path.setAttribute('d', d.trim());
+  svg.appendChild(path);
+}
+window.__drawNewsMap__ = drawNewsMap;
+
+function openNews() {
+  if (!newsPanel) return;
+  if (!newsLoaded) {
+    const tpl = document.getElementById('news-template');
+    if (tpl) {
+      newsPanel.appendChild(tpl.content.cloneNode(true));
+      const backBtn = newsPanel.querySelector('#news-back');
+      if (backBtn) backBtn.addEventListener('click', closeNews);
+      // Hook the freshly injected boxes into the cursor effects
+      bindMagnets(newsPanel.querySelectorAll('.news-post'));
+      bindClickables(newsPanel.querySelectorAll('button, a'));
+      // Re-apply current language so injected content gets translated
+      if (typeof applyLang === 'function') {
+        applyLang(window.__currentLang__ || 'en');
+      }
+      newsLoaded = true;
+    }
+  }
+  document.body.classList.add('news-open');
+  newsPanel.setAttribute('aria-hidden', 'false');
+  newsPanel.scrollTop = 0;
+  // Wait two frames so the slide-in is mid-flight and layout has settled, then draw the route
+  requestAnimationFrame(() => requestAnimationFrame(drawNewsMap));
+}
+
+function closeNews() {
+  if (!newsPanel) return;
+  document.body.classList.remove('news-open');
+  newsPanel.setAttribute('aria-hidden', 'true');
+}
+
+// News-trigger card hover spotlight + click
+if (newsTrigger) {
+  newsTrigger.addEventListener('click', openNews);
+  newsTrigger.addEventListener('mousemove', (e) => {
+    const r = newsTrigger.getBoundingClientRect();
+    newsTrigger.style.setProperty('--nx', `${e.clientX - r.left}px`);
+    newsTrigger.style.setProperty('--ny', `${e.clientY - r.top}px`);
+  });
+}
+
+// Closing news when a nav link is clicked (so anchor scrolling works on main)
+document.querySelectorAll('nav a[href^="#"]').forEach(a => {
+  a.addEventListener('click', () => {
+    if (document.body.classList.contains('news-open')) closeNews();
+  });
+});
+
+// ESC closes news
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && document.body.classList.contains('news-open')) closeNews();
+});
+
+// Redraw the route when viewport changes while news is open
+let _newsResizeTimer = null;
+window.addEventListener('resize', () => {
+  if (!document.body.classList.contains('news-open')) return;
+  clearTimeout(_newsResizeTimer);
+  _newsResizeTimer = setTimeout(drawNewsMap, 80);
+});
 </script>
 
 </body>
