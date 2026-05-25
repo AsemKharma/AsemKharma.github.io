@@ -920,10 +920,11 @@
   .news-page-sub { color: var(--muted); font-size: 1.05rem; max-width: 620px; }
 
   /* ===== News map (route-style timeline) ===== */
+  /* `column-reverse` shows newest post at the top; scrolling down walks back in time. */
   .news-map {
     position: relative;
     display: flex;
-    flex-direction: column;
+    flex-direction: column-reverse;
     gap: 90px;
     padding: 24px 0 60px;
   }
@@ -942,8 +943,8 @@
     stroke-width: 2;
     stroke-dasharray: 6 8;
     stroke-linecap: round;
-    filter: drop-shadow(0 0 6px rgba(124, 92, 255, 0.45));
     animation: news-path-flow 3s linear infinite;
+    /* (removed: filter: drop-shadow — re-rendered every frame and compounded hover-repaint cost) */
   }
   @keyframes news-path-flow {
     to { stroke-dashoffset: -28; }
@@ -997,11 +998,12 @@
     0%   { transform: scale(1); opacity: 0.8; }
     100% { transform: scale(1.6); opacity: 0; }
   }
+  /* Pin sits mostly inside the card so the number is never clipped by overflow:hidden */
   .news-map article.news-post:nth-of-type(odd)  .news-post-pin {
-    inset-inline-end: -23px; inset-inline-start: auto;
+    inset-inline-end: -10px; inset-inline-start: auto;
   }
   .news-map article.news-post:nth-of-type(even) .news-post-pin {
-    inset-inline-start: -23px; inset-inline-end: auto;
+    inset-inline-start: -10px; inset-inline-end: auto;
   }
 
   @media (max-width: 760px) {
@@ -1011,8 +1013,8 @@
     .news-map article.news-post:nth-of-type(even) { align-self: stretch; }
     .news-map article.news-post:nth-of-type(odd)  .news-post-pin,
     .news-map article.news-post:nth-of-type(even) .news-post-pin {
-      inset-inline-start: -14px; inset-inline-end: auto;
-      top: -18px; width: 40px; height: 40px;
+      inset-inline-start: -8px; inset-inline-end: auto;
+      top: -10px; width: 40px; height: 40px;
     }
   }
   .news-post-media {
@@ -1033,7 +1035,824 @@
     letter-spacing: 0.05em;
   }
   .news-post-title { font-size: 1.2rem; font-weight: 600; margin-bottom: 8px; }
-  .news-post-excerpt { color: #b8bdcc; font-size: 0.92rem; }
+  .news-post-excerpt { color: #b8bdcc; font-size: 0.92rem; margin-bottom: 14px; }
+  .news-post-excerpt:last-child { margin-bottom: 0; }
+
+  /* Tag chips inside a post */
+  .news-post-tags {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin-bottom: 14px;
+  }
+  .news-post-tags .tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.08);
+    color: var(--accent-2);
+    border: 1px solid rgba(34, 211, 238, 0.18);
+  }
+
+  /* Photo gallery inside a post — auto-fits 2/3/4+ photos cleanly */
+  .news-post-gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 8px;
+    margin-bottom: 14px;
+  }
+  .np-photo {
+    display: block;
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    transition: transform 0.35s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+    background: rgba(255,255,255,0.03);
+  }
+  .np-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  .np-photo:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(124, 92, 255, 0.18);
+  }
+  .np-photo:hover img { transform: scale(1.07); }
+  .np-photo::after {
+    content: '↗';
+    position: absolute;
+    top: 8px;
+    inset-inline-end: 8px;
+    background: rgba(5,6,10,0.65);
+    backdrop-filter: blur(6px);
+    width: 24px; height: 24px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.72rem;
+    color: rgba(255,255,255,0.85);
+    opacity: 0;
+    transition: opacity 0.25s ease;
+  }
+  .np-photo:hover::after { opacity: 1; }
+  [dir="rtl"] .np-photo::after { content: '↖'; }
+
+  @media (max-width: 600px) {
+    .news-post-gallery { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* Inline "view certificate / link" CTA inside a post */
+  .news-post-link {
+    display: inline-flex; align-items: center; gap: 8px;
+    color: var(--accent-2);
+    text-decoration: none;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    padding: 8px 14px;
+    border: 1px solid rgba(34, 211, 238, 0.25);
+    border-radius: 999px;
+    background: rgba(34, 211, 238, 0.06);
+    transition: all 0.25s ease;
+  }
+  .news-post-link:hover {
+    border-color: var(--accent-2);
+    background: rgba(34, 211, 238, 0.14);
+    transform: translateX(3px);
+  }
+  [dir="rtl"] .news-post-link:hover { transform: translateX(-3px); }
+  .news-post-link .arr { transition: transform 0.25s ease; }
+  .news-post-link:hover .arr { transform: translateX(3px); }
+  [dir="rtl"] .news-post-link .arr { transform: scaleX(-1); }
+  [dir="rtl"] .news-post-link:hover .arr { transform: scaleX(-1) translateX(3px); }
+
+  /* Special media style for the "honor list" post */
+  .news-post-media--honor {
+    background:
+      radial-gradient(circle at 25% 30%, rgba(252, 211, 77, 0.30), transparent 55%),
+      radial-gradient(circle at 80% 80%, rgba(244, 114, 182, 0.20), transparent 60%),
+      linear-gradient(135deg, rgba(124, 92, 255, 0.18), rgba(34, 211, 238, 0.10)),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--honor::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 0deg, rgba(252, 211, 77, 0.10), transparent 30%, rgba(244, 114, 182, 0.08) 60%, transparent 90%);
+    animation: honor-spin 18s linear infinite;
+    pointer-events: none;
+  }
+  @keyframes honor-spin { to { transform: rotate(360deg); } }
+  .honor-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+  }
+  .honor-big {
+    font-size: 4.6rem;
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: -0.04em;
+    background: linear-gradient(135deg, #fcd34d 0%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(252, 211, 77, 0.35));
+  }
+  .honor-big small {
+    font-size: 2.4rem;
+    opacity: 0.7;
+    margin-left: 4px;
+  }
+  .honor-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    letter-spacing: 0.18em;
+    color: #fcd34d;
+    text-transform: uppercase;
+  }
+  .honor-sub {
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.7);
+    letter-spacing: 0.04em;
+  }
+
+  /* Special media style for the Bayan / KFUPM Design Expo post */
+  .news-post-media--bayan {
+    background:
+      radial-gradient(circle at 78% 22%, rgba(252, 211, 77, 0.22), transparent 55%),
+      radial-gradient(circle at 22% 82%, rgba(0, 200, 130, 0.18), transparent 55%),
+      linear-gradient(135deg, rgba(124, 92, 255, 0.18), rgba(34, 211, 238, 0.10)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--bayan::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 180deg,
+      rgba(0, 200, 130, 0.10), transparent 30%,
+      rgba(252, 211, 77, 0.08) 60%, transparent 90%);
+    animation: honor-spin 22s linear infinite;
+    pointer-events: none;
+  }
+  .bayan-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 12px;
+  }
+  .bayan-name-ar {
+    font-family: 'Cairo', sans-serif;
+    font-size: 4.2rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, #fcd34d 0%, #00d180 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(252, 211, 77, 0.30));
+    direction: rtl;
+  }
+  .bayan-name-en {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.42em;
+    color: #fcd34d;
+    padding-left: 0.42em;
+  }
+  .bayan-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.14em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+
+  /* Special media style for the SOL internship post — warm "sun" palette (SOL = sun) */
+  .news-post-media--sol {
+    background:
+      radial-gradient(circle at 75% 25%, rgba(252, 211, 77, 0.32), transparent 55%),
+      radial-gradient(circle at 25% 80%, rgba(249, 115, 22, 0.22), transparent 60%),
+      linear-gradient(135deg, rgba(239, 68, 68, 0.12), rgba(124, 92, 255, 0.08)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--sol::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 90deg,
+      rgba(252, 211, 77, 0.10), transparent 30%,
+      rgba(249, 115, 22, 0.10) 60%, transparent 90%);
+    animation: honor-spin 20s linear infinite;
+    pointer-events: none;
+  }
+  .sol-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px;
+  }
+  .sol-name {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 4.6rem;
+    font-weight: 800;
+    letter-spacing: 0.16em;
+    line-height: 1;
+    background: linear-gradient(135deg, #fcd34d 0%, #f97316 60%, #ef4444 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    filter: drop-shadow(0 0 18px rgba(249, 115, 22, 0.35));
+    padding-left: 0.16em;
+  }
+  .sol-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.76rem;
+    letter-spacing: 0.18em;
+    color: #fcd34d;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .sol-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.64rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+  }
+  .sol-logo {
+    width: 130px;
+    height: auto;
+    display: block;
+    margin-bottom: 4px;
+  }
+
+  /* Special media style for the graduation post — navy + gold ceremonial palette */
+  .news-post-media--grad {
+    background:
+      radial-gradient(circle at 50% 28%, rgba(252, 211, 77, 0.30), transparent 55%),
+      radial-gradient(circle at 50% 92%, rgba(34, 211, 238, 0.18), transparent 60%),
+      linear-gradient(135deg, rgba(30, 41, 99, 0.45), rgba(124, 92, 255, 0.15)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--grad::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 0deg,
+      rgba(252, 211, 77, 0.12), transparent 25%,
+      rgba(34, 211, 238, 0.10) 50%, transparent 75%);
+    animation: honor-spin 24s linear infinite;
+    pointer-events: none;
+  }
+  .grad-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px;
+  }
+  .grad-icon {
+    font-size: 3.6rem;
+    line-height: 1;
+    text-shadow: 0 0 22px rgba(252, 211, 77, 0.55);
+  }
+  .grad-logo {
+    width: 100px;
+    height: 100px;
+    display: block;
+    object-fit: contain;
+  }
+  .grad-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: 0.32em;
+    background: linear-gradient(135deg, #fcd34d 0%, #fef3c7 50%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.32em;
+    margin-top: 4px;
+    /* (removed: filter: drop-shadow — see note in .news-map-line) */
+  }
+  .grad-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+
+  /* Special media style for the SWE 412 senior-project defense post — academic teal + gold */
+  .news-post-media--swe {
+    background:
+      radial-gradient(circle at 50% 28%, rgba(252, 211, 77, 0.24), transparent 50%),
+      radial-gradient(circle at 50% 92%, rgba(15, 118, 110, 0.22), transparent 60%),
+      linear-gradient(135deg, rgba(15, 76, 117, 0.42), rgba(20, 35, 65, 0.30)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--swe::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 0deg,
+      rgba(252, 211, 77, 0.10), transparent 25%,
+      rgba(15, 118, 110, 0.12) 50%, transparent 75%);
+    animation: honor-spin 24s linear infinite;
+    pointer-events: none;
+  }
+  .swe-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px;
+  }
+  .swe-grade-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.20em;
+    color: #fcd34d;
+    text-transform: uppercase;
+  }
+  .swe-grade-wrap {
+    position: relative;
+    width: 92px;
+    height: 92px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 4px 0;
+  }
+  .swe-grade-wrap::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 2px solid rgba(252, 211, 77, 0.55);
+    background: radial-gradient(circle, rgba(252, 211, 77, 0.12), transparent 70%);
+  }
+  .swe-grade {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 3.6rem;
+    font-weight: 800;
+    line-height: 1;
+    background: linear-gradient(135deg, #fcd34d 0%, #fef3c7 45%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    letter-spacing: -0.04em;
+    z-index: 1;
+    position: relative;
+  }
+  .swe-course {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.70rem;
+    letter-spacing: 0.12em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+
+  /* Single-photo gallery: don't stretch the lone image to full row width */
+  .news-post-gallery:has(.np-photo:only-child) {
+    grid-template-columns: minmax(220px, 320px);
+    justify-content: start;
+  }
+  [dir="rtl"] .news-post-gallery:has(.np-photo:only-child) {
+    justify-content: end;
+  }
+  /* Wider aspect for the SWE412 lone group photo so faces aren't cropped too tight */
+  .news-post-gallery:has(.np-photo:only-child) .np-photo {
+    aspect-ratio: 16 / 10;
+  }
+
+  /* Video tile — thumbnail + play overlay, opens in lightbox on click */
+  button.np-video {
+    position: relative;
+    aspect-ratio: 1 / 1;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 1px solid var(--border);
+    background: #000;
+    padding: 0;
+    cursor: pointer;
+    font: inherit;
+    color: inherit;
+    display: block;
+    transition: border-color 0.3s ease, transform 0.35s ease, box-shadow 0.3s ease;
+  }
+  button.np-video:hover {
+    border-color: var(--accent);
+    transform: translateY(-3px);
+    box-shadow: 0 12px 28px rgba(124, 92, 255, 0.18);
+  }
+  .np-video-thumb {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.55s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  button.np-video:hover .np-video-thumb { transform: scale(1.07); }
+  .np-video-overlay {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, rgba(0,0,0,0.40), rgba(0,0,0,0.18));
+    transition: background 0.3s ease;
+    pointer-events: none;
+  }
+  button.np-video:hover .np-video-overlay {
+    background: linear-gradient(135deg, rgba(0,0,0,0.52), rgba(0,0,0,0.28));
+  }
+  .np-video-play {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.96);
+    color: #000;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    padding-left: 4px; /* nudge the triangle to optical center */
+    box-shadow: 0 8px 30px rgba(0,0,0,0.4), 0 0 0 6px rgba(255,255,255,0.10);
+    transition: transform 0.3s ease;
+  }
+  button.np-video:hover .np-video-play { transform: scale(1.10); }
+  .np-video-badge {
+    position: absolute;
+    top: 8px;
+    inset-inline-start: 8px;
+    background: rgba(5, 6, 10, 0.65);
+    backdrop-filter: blur(6px);
+    color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.10em;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255,255,255,0.10);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* Special media style for the Honor Students Recognition post — KFUPM green + gold */
+  .news-post-media--ceremony {
+    background:
+      radial-gradient(circle at 50% 22%, rgba(252, 211, 77, 0.32), transparent 50%),
+      radial-gradient(circle at 50% 92%, rgba(15, 81, 50, 0.40), transparent 60%),
+      linear-gradient(135deg, rgba(15, 81, 50, 0.32), rgba(20, 30, 25, 0.30)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--ceremony::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 45deg,
+      rgba(252, 211, 77, 0.12), transparent 25%,
+      rgba(15, 81, 50, 0.14) 50%, transparent 75%);
+    animation: honor-spin 22s linear infinite;
+    pointer-events: none;
+  }
+  .ceremony-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px;
+  }
+  .ceremony-icon {
+    font-size: 3.6rem;
+    line-height: 1;
+    text-shadow: 0 0 22px rgba(252, 211, 77, 0.55);
+  }
+  .ceremony-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.25rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    background: linear-gradient(135deg, #fcd34d 0%, #fef3c7 50%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.28em;
+    margin-top: 4px;
+  }
+  .ceremony-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+
+  /* Special media style for the LabSystems internship post — cool lab/data palette (blue + cyan) */
+  .news-post-media--lab {
+    background:
+      radial-gradient(circle at 50% 24%, rgba(34, 211, 238, 0.30), transparent 50%),
+      radial-gradient(circle at 50% 92%, rgba(59, 130, 246, 0.24), transparent 60%),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.45), rgba(15, 76, 117, 0.28)),
+      repeating-linear-gradient(45deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--lab::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 135deg,
+      rgba(34, 211, 238, 0.12), transparent 25%,
+      rgba(59, 130, 246, 0.12) 50%, transparent 75%);
+    animation: honor-spin 22s linear infinite;
+    pointer-events: none;
+  }
+  .lab-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    padding: 12px;
+  }
+  .lab-icon {
+    font-size: 3.4rem;
+    line-height: 1;
+    text-shadow: 0 0 22px rgba(34, 211, 238, 0.55);
+  }
+  .lab-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 0.30em;
+    background: linear-gradient(135deg, #22d3ee 0%, #93c5fd 50%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.30em;
+    margin-top: 4px;
+  }
+  .lab-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.66rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+  .lab-logo {
+    max-width: min(240px, 75%);
+    max-height: 100px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+
+  /* Shared UZD media style — steel/teal tones echoing the UZD wall-art palette */
+  .news-post-media--uzd,
+  .news-post-media--uzd-lead {
+    background:
+      radial-gradient(circle at 50% 24%, rgba(94, 234, 212, 0.28), transparent 50%),
+      radial-gradient(circle at 50% 92%, rgba(15, 76, 117, 0.28), transparent 60%),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.50), rgba(20, 40, 50, 0.30)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--uzd::before,
+  .news-post-media--uzd-lead::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 60deg,
+      rgba(94, 234, 212, 0.12), transparent 25%,
+      rgba(15, 76, 117, 0.14) 50%, transparent 75%);
+    animation: honor-spin 22s linear infinite;
+    pointer-events: none;
+  }
+  /* Tech-lead variant gets a warm gold sweep mixed in to signal the elevation */
+  .news-post-media--uzd-lead::before {
+    background: conic-gradient(from 60deg,
+      rgba(252, 211, 77, 0.14), transparent 25%,
+      rgba(94, 234, 212, 0.12) 50%, transparent 75%);
+  }
+  .uzd-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    padding: 12px;
+  }
+  .uzd-wordmark {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 3.6rem;
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: 0.04em;
+    background: linear-gradient(135deg, #5eead4 0%, #67e8f9 50%, #5eead4 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .uzd-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    letter-spacing: 0.18em;
+    color: #5eead4;
+    text-transform: uppercase;
+    margin-top: 6px;
+  }
+  /* Tech-lead label switches to gold to signal the promotion */
+  .news-post-media--uzd-lead .uzd-label {
+    background: linear-gradient(135deg, #fcd34d 0%, #fef3c7 50%, #fcd34d 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 700;
+  }
+  .uzd-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+  }
+  .uzd-promotion-arrow {
+    font-size: 1.4rem;
+    line-height: 1;
+    color: #fcd34d;
+    text-shadow: 0 0 14px rgba(252, 211, 77, 0.65);
+    margin-bottom: 2px;
+  }
+
+  /* TU Dresden post — TUD-blue palette with a white spotlight behind the logo so it stays readable */
+  .news-post-media--tud {
+    background:
+      radial-gradient(circle at 50% 32%, rgba(255, 255, 255, 0.22), transparent 38%),
+      radial-gradient(circle at 50% 92%, rgba(0, 35, 156, 0.36), transparent 60%),
+      linear-gradient(135deg, rgba(15, 23, 42, 0.50), rgba(0, 35, 156, 0.24)),
+      repeating-linear-gradient(135deg, rgba(255,255,255,0.025) 0 12px, transparent 12px 24px);
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--tud::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 120deg,
+      rgba(255, 255, 255, 0.12), transparent 25%,
+      rgba(0, 35, 156, 0.18) 50%, transparent 75%);
+    animation: honor-spin 24s linear infinite;
+    pointer-events: none;
+  }
+  .tud-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    padding: 12px;
+  }
+  .tud-logo {
+    max-width: min(220px, 75%);
+    max-height: 90px;
+    height: auto;
+    display: block;
+    object-fit: contain;
+  }
+  .tud-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.70rem;
+    letter-spacing: 0.16em;
+    color: #ffffff;
+    text-transform: uppercase;
+    margin-top: 4px;
+  }
+  .tud-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+  }
+
+  /* "Journey continues" — minimal, atmospheric, signals the timeline is still being written */
+  .news-post-media--next {
+    background:
+      radial-gradient(circle at 30% 30%, rgba(124, 92, 255, 0.22), transparent 55%),
+      radial-gradient(circle at 75% 80%, rgba(244, 114, 182, 0.18), transparent 55%),
+      radial-gradient(circle at 50% 50%, rgba(34, 211, 238, 0.14), transparent 60%),
+      linear-gradient(135deg, rgba(10, 15, 30, 0.45), rgba(20, 20, 40, 0.30));
+    color: #fff;
+    flex-direction: column;
+    line-height: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .news-post-media--next::before {
+    content: '';
+    position: absolute;
+    inset: -20%;
+    background: conic-gradient(from 0deg,
+      rgba(124, 92, 255, 0.12),
+      rgba(34, 211, 238, 0.12) 33%,
+      rgba(244, 114, 182, 0.12) 66%,
+      rgba(124, 92, 255, 0.12) 100%);
+    animation: honor-spin 30s linear infinite;
+    pointer-events: none;
+  }
+  .next-badge {
+    position: relative; z-index: 1;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+    padding: 12px;
+  }
+  .next-dots {
+    display: flex;
+    gap: 18px;
+    align-items: center;
+  }
+  .next-dots span {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c5cff, #22d3ee, #f472b6);
+    animation: next-dot-pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 18px rgba(124, 92, 255, 0.55);
+  }
+  .next-dots span:nth-child(2) { animation-delay: 0.18s; }
+  .next-dots span:nth-child(3) { animation-delay: 0.36s; }
+  @keyframes next-dot-pulse {
+    0%, 100% { opacity: 0.35; transform: scale(0.85); }
+    50%      { opacity: 1;    transform: scale(1.25); }
+  }
+  .next-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: 0.30em;
+    background: linear-gradient(135deg, #7c5cff 0%, #22d3ee 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.30em;
+    margin-top: 6px;
+  }
+  .next-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.7);
+    text-transform: uppercase;
+  }
+  /* Special pin for the "journey continues" post — non-numeric arrow, gradient ring */
+  .news-post-pin--next {
+    background: linear-gradient(135deg, #7c5cff, #22d3ee 50%, #f472b6);
+    font-size: 1.4rem;
+    font-weight: 400;
+    box-shadow:
+      0 0 0 4px var(--bg),
+      0 0 0 5px rgba(124, 92, 255, 0.55),
+      0 0 30px rgba(244, 114, 182, 0.55);
+  }
+  .news-post-pin--next::after {
+    border-color: rgba(244, 114, 182, 0.55);
+  }
 
   /* ===== CV inline modal ===== */
   #cv-modal {
@@ -1166,6 +1985,150 @@
     .cv-modal-card { width: 100%; height: 100%; border-radius: 0; border: none; }
   }
 
+  /* ===== Image lightbox (for post-gallery photos) ===== */
+  #img-lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 250;
+    display: none;
+    align-items: center;
+    justify-content: center;
+  }
+  #img-lightbox.open { display: flex; }
+  body.lightbox-open { overflow: hidden; }
+  .img-lightbox-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(5, 6, 10, 0.86);
+    backdrop-filter: blur(12px);
+    animation: cv-fade-in 0.25s ease;
+    cursor: zoom-out;
+  }
+  .img-lightbox-img {
+    position: relative;
+    max-width: 90vw;
+    max-height: 85vh;
+    object-fit: contain;
+    border-radius: 10px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 60px rgba(124, 92, 255, 0.18);
+    animation: lb-pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: #0a0c14;
+  }
+  .img-lightbox-frame {
+    position: relative;
+    width: min(90vw, 1280px);
+    aspect-ratio: 16 / 9;
+    max-height: 85vh;
+    border: 0;
+    border-radius: 10px;
+    box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 60px rgba(124, 92, 255, 0.18);
+    animation: lb-pop-in 0.35s cubic-bezier(0.2, 0.8, 0.2, 1);
+    background: #000;
+    display: none;
+  }
+  /* "Watch on YouTube ↗" fallback link — shown only while a video is loaded in the lightbox */
+  .img-lightbox-yt-link {
+    position: absolute;
+    bottom: 60px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.78rem;
+    color: rgba(255,255,255,0.65);
+    background: rgba(5,6,10,0.55);
+    border: 1px solid rgba(255,255,255,0.10);
+    padding: 6px 14px;
+    border-radius: 999px;
+    text-decoration: none;
+    backdrop-filter: blur(8px);
+    display: none;
+    transition: all 0.25s ease;
+    z-index: 2;
+  }
+  .img-lightbox-yt-link:hover {
+    color: #fff;
+    border-color: var(--accent);
+    background: rgba(124,92,255,0.18);
+  }
+  #img-lightbox.video-mode .img-lightbox-yt-link { display: inline-block; }
+  @keyframes lb-pop-in {
+    from { opacity: 0; transform: scale(0.94); }
+    to   { opacity: 1; transform: scale(1); }
+  }
+  .img-lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    font-size: 1.1rem;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+    transition: all 0.25s ease;
+    z-index: 2;
+  }
+  .img-lightbox-close:hover {
+    border-color: var(--accent);
+    background: rgba(124, 92, 255, 0.18);
+    transform: rotate(90deg);
+  }
+  .img-lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.05);
+    color: var(--ink);
+    font-size: 1.6rem;
+    line-height: 1;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    backdrop-filter: blur(6px);
+    transition: all 0.25s ease;
+    z-index: 2;
+  }
+  .img-lightbox-nav:hover {
+    border-color: var(--accent);
+    background: rgba(124, 92, 255, 0.18);
+    color: #fff;
+  }
+  .img-lightbox-prev { left: 20px; }
+  .img-lightbox-next { right: 20px; }
+  [dir="rtl"] .img-lightbox-prev { left: auto; right: 20px; }
+  [dir="rtl"] .img-lightbox-next { right: auto; left: 20px; }
+  .img-lightbox-counter {
+    position: absolute;
+    bottom: 22px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.82rem;
+    color: rgba(255,255,255,0.7);
+    background: rgba(5, 6, 10, 0.55);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 6px 14px;
+    border-radius: 999px;
+    backdrop-filter: blur(8px);
+    z-index: 2;
+  }
+  /* Hide nav controls if only one image */
+  #img-lightbox.single .img-lightbox-nav,
+  #img-lightbox.single .img-lightbox-counter { display: none; }
+
+  @media (max-width: 600px) {
+    .img-lightbox-close { top: 12px; right: 12px; width: 38px; height: 38px; }
+    .img-lightbox-nav { width: 42px; height: 42px; font-size: 1.3rem; }
+    .img-lightbox-prev { left: 8px; }
+    .img-lightbox-next { right: 8px; }
+    .img-lightbox-img { max-width: 96vw; max-height: 78vh; }
+  }
+
   /* ===== Custom cursor ===== */
   @media (hover: hover) and (pointer: fine) {
     body, body * { cursor: none !important; }
@@ -1249,15 +2212,14 @@
   }
   @media (hover: none) { #cursor-aura { display: none; } }
 
-  /* Box absorbs the aura -> lights up brighter */
+  /* Box absorbs the aura -> lights up brighter.
+     Lightweight box-shadow (was: 4 layers incl. 110px blur + inset — caused hover stutter on large cards). */
   .aura-eating {
     border-color: var(--accent) !important;
     box-shadow:
-      0 0 0 1px rgba(124, 92, 255, 0.55),
-      0 0 50px rgba(124, 92, 255, 0.35),
-      0 0 110px rgba(124, 92, 255, 0.20),
-      inset 0 0 40px rgba(124, 92, 255, 0.10) !important;
-    transition: box-shadow 0.4s ease, border-color 0.3s ease, transform 0.35s ease, background 0.3s ease;
+      0 0 0 1px rgba(124, 92, 255, 0.50),
+      0 10px 30px rgba(124, 92, 255, 0.22) !important;
+    transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.35s ease, background 0.3s ease;
   }
   .proj-card.aura-eating::before { opacity: 1; }
 
@@ -1610,6 +2572,22 @@
 <!-- News panel — empty until first open, lazy-rendered from template below -->
 <aside id="news-panel" aria-hidden="true"></aside>
 
+<!-- Image / video lightbox — opens .np-photo or .np-video clicks in a fullscreen modal -->
+<div id="img-lightbox" aria-hidden="true" role="dialog" aria-modal="true" aria-label="Media viewer">
+  <div class="img-lightbox-backdrop"></div>
+  <button type="button" class="img-lightbox-nav img-lightbox-prev" aria-label="Previous">‹</button>
+  <button type="button" class="img-lightbox-nav img-lightbox-next" aria-label="Next">›</button>
+  <img class="img-lightbox-img" alt="">
+  <iframe class="img-lightbox-frame"
+          title="Video viewer"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  <a class="img-lightbox-yt-link" target="_blank" rel="noopener">Watch on YouTube ↗</a>
+  <div class="img-lightbox-counter"></div>
+  <button type="button" class="img-lightbox-close" aria-label="Close">✕</button>
+</div>
+
 <!-- CV inline modal — iframe src is set only on first open (lazy load) -->
 <div id="cv-modal" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cv-modal-title">
   <div class="cv-modal-backdrop"></div>
@@ -1661,38 +2639,328 @@
       </svg>
       <article class="news-post">
         <span class="news-post-pin">01</span>
-        <div class="news-post-media">📰</div>
+        <div class="news-post-media news-post-media--honor" aria-hidden="true">
+          <div class="honor-badge">
+            <div class="honor-big">5<small>×</small></div>
+            <div class="honor-label" data-i18n="news.post1.badge">Dean's Honor List</div>
+            <div class="honor-sub" data-i18n="news.post1.badgeSub">KFUPM · 2019 – 2023</div>
+          </div>
+        </div>
         <div class="news-post-body">
-          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
-          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
-          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+          <div class="news-post-date" data-i18n="news.post1.date">JAN 2023 · KFUPM, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post1.title">5× Honor Student at KFUPM</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post1.tag1">Academic</span>
+            <span class="tag" data-i18n="news.post1.tag2">Software Engineering</span>
+            <span class="tag" data-i18n="news.post1.tag3">GPA 3.56</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post1.excerpt">Received my fifth Dean's Honor List certificate at King Fahd University of Petroleum &amp; Minerals — recognising five semesters of academic excellence throughout my Software Engineering bachelor.</p>
+          <a class="news-post-link" href="certificates/KFUPM_Honor_5x.pdf" target="_blank" rel="noopener">
+            <span data-i18n="news.post1.cta">View certificate</span>
+            <span class="arr">→</span>
+          </a>
         </div>
       </article>
+      <!-- Note: data-i18n key suffixes (.post2/.post3) reflect post creation order, not pin number.
+           Visual order is chronological — SOL (Jun-Aug 2023) comes before Bayan/Expo (Dec 2023). -->
       <article class="news-post">
         <span class="news-post-pin">02</span>
-        <div class="news-post-media">✨</div>
+        <div class="news-post-media news-post-media--sol" aria-hidden="true">
+          <div class="sol-badge">
+            <img class="sol-logo" src="images/sol-logo.svg" alt="SOL" loading="lazy" decoding="async">
+            <div class="sol-label" data-i18n="news.post3.badge">Summer 2023 Internship</div>
+            <div class="sol-sub">Angular · TypeScript · Figma → Code</div>
+          </div>
+        </div>
         <div class="news-post-body">
-          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
-          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
-          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+          <div class="news-post-date" data-i18n="news.post3.date">JUN — AUG 2023 · AL-KHOBAR, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post3.title">Software Engineering Internship at SOL</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post3.tag1">Internship</span>
+            <span class="tag" data-i18n="news.post3.tag2">Angular</span>
+            <span class="tag" data-i18n="news.post3.tag3">TypeScript</span>
+            <span class="tag" data-i18n="news.post3.tag4">Figma → Code</span>
+            <span class="tag" data-i18n="news.post3.tag5">Frontend</span>
+            <span class="tag" data-i18n="news.post3.tag6">Code Review</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post3.excerpt">My first taste of production frontend work. Spent the summer at SOL building a modular Angular + TypeScript application — shipped the landing page, helped build the Team Members feature, translated Figma designs into responsive components, ironed out cross-device bugs, and took part in code reviews focused on documentation and reuse.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/SOL1.jpg" target="_blank" rel="noopener" aria-label="SOL team — end-of-internship group photo">
+              <img src="images/SOL1.jpg" alt="SOL team — end-of-internship group photo" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/SOL2.jpg" target="_blank" rel="noopener" aria-label="SOL team in the meeting room">
+              <img src="images/SOL2.jpg" alt="SOL team in the meeting room" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/SOL3.jpg" target="_blank" rel="noopener" aria-label="With SOL colleagues in the office">
+              <img src="images/SOL3.jpg" alt="With SOL colleagues in the office" loading="lazy" decoding="async">
+            </a>
+          </div>
         </div>
       </article>
       <article class="news-post">
         <span class="news-post-pin">03</span>
-        <div class="news-post-media">🚀</div>
+        <div class="news-post-media news-post-media--swe" aria-hidden="true">
+          <div class="swe-badge">
+            <div class="swe-grade-label" data-i18n="news.post5.gradeLabel">Final Grade</div>
+            <div class="swe-grade-wrap">
+              <div class="swe-grade">A</div>
+            </div>
+            <div class="swe-course" data-i18n="news.post5.course">SWE 412 · Bayan · KFUPM</div>
+          </div>
+        </div>
         <div class="news-post-body">
-          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
-          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
-          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+          <div class="news-post-date" data-i18n="news.post5.date">NOV 2023 · KFUPM, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post5.title">Senior Project Defense — Bayan Earned an &ldquo;A&rdquo;</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post5.tag1">Senior Project</span>
+            <span class="tag" data-i18n="news.post5.tag2">1-Year Project</span>
+            <span class="tag" data-i18n="news.post5.tag3">Chair Defense</span>
+            <span class="tag" data-i18n="news.post5.tag4">Grade: A</span>
+            <span class="tag" data-i18n="news.post5.tag5">SWE 412</span>
+            <span class="tag" data-i18n="news.post5.tag6">Team of 6</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post5.excerpt">After a full year of building, we presented <em>Bayan</em> to the department chair for the SWE 412 senior-project defense — design decisions, system architecture, the Node.js + MongoDB backend, the 100ms-powered video layer, and every user-facing feature. The project earned an <strong>&ldquo;A&rdquo;</strong>, clearing the way to take Bayan to the public KFUPM Design Expo a few weeks later.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/SWE412.jpg" target="_blank" rel="noopener" aria-label="Bayan team after the SWE 412 senior-project defense">
+              <img src="images/SWE412.jpg" alt="Bayan team after the SWE 412 senior-project defense" loading="lazy" decoding="async">
+            </a>
+          </div>
         </div>
       </article>
       <article class="news-post">
         <span class="news-post-pin">04</span>
-        <div class="news-post-media">💡</div>
+        <div class="news-post-media news-post-media--bayan" aria-hidden="true">
+          <div class="bayan-badge">
+            <div class="bayan-name-ar">بَيَان</div>
+            <div class="bayan-name-en">BAYAN</div>
+            <div class="bayan-label" data-i18n="news.post2.badge">KFUPM Design Expo · Graduation</div>
+          </div>
+        </div>
         <div class="news-post-body">
-          <div class="news-post-date" data-i18n="news.soonDate">COMING SOON</div>
-          <h3 class="news-post-title" data-i18n="news.soonTitle">First post on the way</h3>
-          <p class="news-post-excerpt" data-i18n="news.soonExcerpt">A short summary of the post will live here. Text, images, and links will be added as posts are published.</p>
+          <div class="news-post-date" data-i18n="news.post2.date">DEC 2023 · KFUPM, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post2.title">Bayan — Graduation Project at the KFUPM Design Expo</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post2.tag1">Graduation Project</span>
+            <span class="tag" data-i18n="news.post2.tag2">Node.js</span>
+            <span class="tag" data-i18n="news.post2.tag3">MongoDB</span>
+            <span class="tag" data-i18n="news.post2.tag4">100ms Video</span>
+            <span class="tag" data-i18n="news.post2.tag5">Arabic Language</span>
+            <span class="tag" data-i18n="news.post2.tag6">Team of 6</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post2.excerpt">Represented <em>Bayan</em> at the KFUPM Design Expo — our Software Engineering capstone project. Bayan is an Arabic language platform that connects learners with native tutors through video calls, custom courses, on-demand sessions, private chat, and a built-in scheduling system. Built with a team of six and shipped as the final showcase before graduation.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/EXPO1.jpg" target="_blank" rel="noopener" aria-label="At the KFUPM Design Expo backdrop">
+              <img src="images/EXPO1.jpg" alt="At the KFUPM Design Expo backdrop" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/EXPO2.jpg" target="_blank" rel="noopener" aria-label="Presenting Bayan at the booth">
+              <img src="images/EXPO2.jpg" alt="Presenting Bayan at the booth" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/EXPO3.jpg" target="_blank" rel="noopener" aria-label="On the KFUPM campus before the expo">
+              <img src="images/EXPO3.jpg" alt="On the KFUPM campus before the expo" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/EXPO4.jpg" target="_blank" rel="noopener" aria-label="Team photo with supervisors at the expo">
+              <img src="images/EXPO4.jpg" alt="Team photo with supervisors at the expo" loading="lazy" decoding="async">
+            </a>
+          </div>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">05</span>
+        <div class="news-post-media news-post-media--grad" aria-hidden="true">
+          <div class="grad-badge">
+            <img class="grad-logo" src="images/kfupm-logo.png" alt="King Fahd University of Petroleum &amp; Minerals" loading="lazy" decoding="async">
+            <div class="grad-label" data-i18n="news.post4.badge">Graduated</div>
+            <div class="grad-sub" data-i18n="news.post4.badgeSub">KFUPM · Class of 2024 · Batch 54</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post4.date">JAN 2024 · KFUPM, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post4.title">B.Sc. Software Engineering — Two Scholarships, Second Honors</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post4.tag1">Graduation</span>
+            <span class="tag" data-i18n="news.post4.tag2">Entrance Scholarship</span>
+            <span class="tag" data-i18n="news.post4.tag3">Full Tuition Waiver</span>
+            <span class="tag" data-i18n="news.post4.tag4">GPA 3.56 / 4.0</span>
+            <span class="tag" data-i18n="news.post4.tag5">Second Honors</span>
+            <span class="tag" data-i18n="news.post4.tag6">Batch 54</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post4.excerpt">Graduated from <strong>King Fahd University of Petroleum &amp; Minerals</strong> — one of the top engineering schools in the region — with a B.Sc. in Software Engineering and <strong>Second Class Honors</strong> (GPA 3.56 / 4.0). KFUPM backed me with <strong>two scholarships</strong> along the way: an entrance scholarship that opened the door, and a merit-based tuition waiver that covered every remaining fee once my GPA was high enough to qualify. Closed out as part of <strong>Batch 54</strong> with five Dean's Honor List recognitions and a capstone project (Bayan) showcased at the KFUPM Design Expo.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/GRAD1.jpg" target="_blank" rel="noopener" aria-label="With fellow graduates in ceremonial dress">
+              <img src="images/GRAD1.jpg" alt="With fellow graduates in ceremonial dress" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/GRAD2.jpg" target="_blank" rel="noopener" aria-label="The KFUPM graduation ceremony main stage">
+              <img src="images/GRAD2.jpg" alt="The KFUPM graduation ceremony main stage" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/GRAD3.jpg" target="_blank" rel="noopener" aria-label="Graduation rose with a congratulations card — Batch 54">
+              <img src="images/GRAD3.jpg" alt="Graduation rose with a congratulations card — Batch 54" loading="lazy" decoding="async">
+            </a>
+          </div>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">06</span>
+        <div class="news-post-media news-post-media--ceremony" aria-hidden="true">
+          <div class="ceremony-badge">
+            <div class="ceremony-icon">🎖️</div>
+            <div class="ceremony-label" data-i18n="news.post6.badge">Honored on Stage</div>
+            <div class="ceremony-sub" data-i18n="news.post6.badgeSub">KFUPM · 17th Commencement</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post6.date">FEB 2024 · KFUPM, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post6.title">Honor Students Recognition — 17th KFUPM Commencement</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post6.tag1">Honor Students</span>
+            <span class="tag" data-i18n="news.post6.tag2">Dean's Honor List</span>
+            <span class="tag" data-i18n="news.post6.tag3">17th Commencement</span>
+            <span class="tag" data-i18n="news.post6.tag4">On Stage</span>
+            <span class="tag" data-i18n="news.post6.tag5">Class of 2024</span>
+            <span class="tag" data-i18n="news.post6.tag6">Family Day</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post6.excerpt">Called up on stage at the <strong>17th KFUPM Commencement</strong> for the Dean's Honor List recognition — the moment that closes years of consistent grades, the entrance scholarship, and the merit-based tuition waiver. A formal cap to the academic chapter, shared with the people who made it possible.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/HONOR1.jpg" target="_blank" rel="noopener" aria-label="With my supervisor at the commencement">
+              <img src="images/HONOR1.jpg" alt="With my supervisor at the commencement" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/HONOR2.jpg" target="_blank" rel="noopener" aria-label="With my parents in front of the KFUPM commencement backdrop">
+              <img src="images/HONOR2.jpg" alt="With my parents in front of the KFUPM commencement backdrop" loading="lazy" decoding="async">
+            </a>
+            <button type="button" class="np-video"
+                    data-video-src="https://www.youtube.com/embed/PTWBAW9-kmQ?start=2210"
+                    data-video-fallback="https://youtu.be/PTWBAW9-kmQ?t=2210"
+                    aria-label="Play: Honor Students Recognition — KFUPM 17th Commencement (jumps to the recognition moment)">
+              <img class="np-video-thumb"
+                   src="https://i.ytimg.com/vi/PTWBAW9-kmQ/hqdefault.jpg"
+                   alt="Honor Students Recognition — KFUPM 17th Commencement"
+                   loading="lazy" decoding="async">
+              <div class="np-video-overlay"><div class="np-video-play">▶</div></div>
+              <span class="np-video-badge" data-i18n="news.post6.videoBadge">▶ Live · 36:50</span>
+            </button>
+          </div>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">07</span>
+        <div class="news-post-media news-post-media--lab" aria-hidden="true">
+          <div class="lab-badge">
+            <img class="lab-logo" src="images/labsystems-logo.png" alt="LabSystems" loading="lazy" decoding="async">
+            <div class="lab-sub" data-i18n="news.post7.badgeSub">Summer 2024 · LabVantage Integration</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post7.date">JUN — SEP 2024 · AL-KHOBAR, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post7.title">Software Engineering Internship at LabSystems</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post7.tag1">Internship</span>
+            <span class="tag" data-i18n="news.post7.tag2">Java</span>
+            <span class="tag" data-i18n="news.post7.tag3">JavaScript</span>
+            <span class="tag" data-i18n="news.post7.tag4">LabVantage</span>
+            <span class="tag" data-i18n="news.post7.tag5">Data Visualization</span>
+            <span class="tag" data-i18n="news.post7.tag6">Code Review</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post7.excerpt">First post-graduation role — three months at <strong>LabSystems</strong> writing <strong>Java drivers</strong> that bridge laboratory instruments with the central LabVantage data platform, building report templates that pull straight from the LabVantage database, and visualising the retrieved data for end-users. Worked across teams to slot modular, secure components into the existing system and helped onboard new tech in code reviews.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/LAB1.jpg" target="_blank" rel="noopener" aria-label="Working on the LabSystems integration">
+              <img src="images/LAB1.jpg" alt="Working on the LabSystems integration" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/LAB2.jpg" target="_blank" rel="noopener" aria-label="LabSystems team portrait">
+              <img src="images/LAB2.jpg" alt="LabSystems team portrait" loading="lazy" decoding="async">
+            </a>
+          </div>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">08</span>
+        <div class="news-post-media news-post-media--uzd" aria-hidden="true">
+          <div class="uzd-badge">
+            <div class="uzd-wordmark">UZD</div>
+            <div class="uzd-label" data-i18n="news.post8.badge">Backend Developer</div>
+            <div class="uzd-sub" data-i18n="news.post8.badgeSub">Software Solutions · Al-Khobar</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post8.date">OCT 2024 · AL-KHOBAR, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post8.title">Joined UZD Software Solutions as Backend Developer</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post8.tag1">Backend Developer</span>
+            <span class="tag" data-i18n="news.post8.tag2">Django REST</span>
+            <span class="tag" data-i18n="news.post8.tag3">Python</span>
+            <span class="tag" data-i18n="news.post8.tag4">PostgreSQL</span>
+            <span class="tag" data-i18n="news.post8.tag5">Scraapy.sa</span>
+            <span class="tag" data-i18n="news.post8.tag6">Startup</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post8.excerpt">First full-time backend role — joined <strong>UZD Software Solutions</strong> as a Backend Developer. Built production APIs in <strong>Django REST Framework</strong>, integrated third-party providers, and contributed to the <strong>Scraapy.sa</strong> multi-store scrap marketplace — redesigning the database schema, layering RBAC across user types, building geofenced product suggestions, and writing test suites around every API to lock down behaviour for future iterations.</p>
+          <div class="news-post-gallery">
+            <a class="np-photo" href="images/UZD1.jpg" target="_blank" rel="noopener" aria-label="At the UZD office with a colleague">
+              <img src="images/UZD1.jpg" alt="At the UZD office with a colleague" loading="lazy" decoding="async">
+            </a>
+            <a class="np-photo" href="images/UZD2.jpg" target="_blank" rel="noopener" aria-label="Dev workstation at UZD — dual monitors on Linux Mint">
+              <img src="images/UZD2.jpg" alt="Dev workstation at UZD — dual monitors on Linux Mint" loading="lazy" decoding="async">
+            </a>
+          </div>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">09</span>
+        <div class="news-post-media news-post-media--uzd-lead" aria-hidden="true">
+          <div class="uzd-badge">
+            <div class="uzd-promotion-arrow">↑</div>
+            <div class="uzd-wordmark">UZD</div>
+            <div class="uzd-label" data-i18n="news.post9.badge">Promoted · Head Backend Developer</div>
+            <div class="uzd-sub" data-i18n="news.post9.badgeSub">Tech Lead · Software Solutions</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post9.date">DEC 2024 · AL-KHOBAR, SAUDI ARABIA</div>
+          <h3 class="news-post-title" data-i18n="news.post9.title">Promoted to Head Backend Developer (Tech Lead) at UZD</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post9.tag1">Promotion</span>
+            <span class="tag" data-i18n="news.post9.tag2">Tech Lead</span>
+            <span class="tag" data-i18n="news.post9.tag3">Architecture</span>
+            <span class="tag" data-i18n="news.post9.tag4">Project Estimation</span>
+            <span class="tag" data-i18n="news.post9.tag5">O+ · Darah</span>
+            <span class="tag" data-i18n="news.post9.tag6">Mentoring</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post9.excerpt">Promoted from Backend Developer to <strong>Head Backend Developer (Tech Lead)</strong>. Took over architecture decisions, project estimation, code reviews, and load distribution across the backend team. Led the backend of <strong>O+ (Al-Ettifaq fan app)</strong> and <strong>Darah (real-estate management system)</strong> — including stepping in to drive a full Darah backend overhaul while the lead was hospitalised, and breaking the monolithic Docker server into three task-specific services. Restructured server APIs to cut external calls and lower infrastructure cost.</p>
+        </div>
+      </article>
+      <article class="news-post">
+        <span class="news-post-pin">10</span>
+        <div class="news-post-media news-post-media--tud" aria-hidden="true">
+          <div class="tud-badge">
+            <img class="tud-logo" src="images/tud-logo.png" alt="Technische Universität Dresden" loading="lazy" decoding="async">
+            <div class="tud-label" data-i18n="news.post10.badge">Distributed Systems Engineering</div>
+            <div class="tud-sub" data-i18n="news.post10.badgeSub">M.Sc. Computer Science · Class of 2028</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post10.date">2026 · DRESDEN, GERMANY</div>
+          <h3 class="news-post-title" data-i18n="news.post10.title">Accepted to TU Dresden — M.Sc. Computer Science</h3>
+          <div class="news-post-tags">
+            <span class="tag" data-i18n="news.post10.tag1">Master's Degree</span>
+            <span class="tag" data-i18n="news.post10.tag2">Computer Science</span>
+            <span class="tag" data-i18n="news.post10.tag3">Distributed Systems</span>
+            <span class="tag" data-i18n="news.post10.tag4">TU Dresden</span>
+            <span class="tag" data-i18n="news.post10.tag5">Germany</span>
+            <span class="tag" data-i18n="news.post10.tag6">Class of 2028</span>
+          </div>
+          <p class="news-post-excerpt" data-i18n-html="news.post10.excerpt">Accepted to <strong>Technische Universität Dresden</strong> — one of Germany's TU9 universities of technology — for an <strong>M.Sc. in Computer Science on the Distributed Systems Engineering track</strong>. The program dives deep into the systems side of computer science: distributed algorithms, scalable architectures, networking, and large-scale data infrastructure. A move from Saudi Arabia to Dresden to take this on full-time.</p>
+        </div>
+      </article>
+      <article class="news-post news-post--next">
+        <span class="news-post-pin news-post-pin--next" aria-label="The story continues">→</span>
+        <div class="news-post-media news-post-media--next" aria-hidden="true">
+          <div class="next-badge">
+            <div class="next-dots"><span></span><span></span><span></span></div>
+            <div class="next-label" data-i18n="news.post11.badge">The Journey Continues</div>
+            <div class="next-sub" data-i18n="news.post11.badgeSub">New chapters being written</div>
+          </div>
+        </div>
+        <div class="news-post-body">
+          <div class="news-post-date" data-i18n="news.post11.date">··· · ONGOING</div>
+          <h3 class="news-post-title" data-i18n="news.post11.title">To be continued…</h3>
+          <p class="news-post-excerpt" data-i18n-html="news.post11.excerpt">New milestones, projects, and challenges are still ahead — in Dresden, in distributed systems, in code, and in everything in between. Check back as the story unfolds.</p>
         </div>
       </article>
     </div>
@@ -1833,6 +3101,129 @@ const I18N = {
     "news.soonTitle": "First post on the way",
     "news.soonExcerpt": "A short summary of the post will live here. Text, images, and links will be added as posts are published.",
 
+    "news.post1.badge": "Dean's Honor List",
+    "news.post1.badgeSub": "KFUPM · 2019 – 2023",
+    "news.post1.date": "JAN 2023 · KFUPM, SAUDI ARABIA",
+    "news.post1.title": "5× Honor Student at KFUPM",
+    "news.post1.tag1": "Academic",
+    "news.post1.tag2": "Software Engineering",
+    "news.post1.tag3": "GPA 3.56",
+    "news.post1.excerpt": "Received my fifth Dean's Honor List certificate at King Fahd University of Petroleum & Minerals — recognising five semesters of academic excellence throughout my Software Engineering bachelor.",
+    "news.post1.cta": "View certificate",
+
+    "news.post2.badge": "KFUPM Design Expo · Graduation",
+    "news.post2.date": "DEC 2023 · KFUPM, SAUDI ARABIA",
+    "news.post2.title": "Bayan — Graduation Project at the KFUPM Design Expo",
+    "news.post2.tag1": "Graduation Project",
+    "news.post2.tag2": "Node.js",
+    "news.post2.tag3": "MongoDB",
+    "news.post2.tag4": "100ms Video",
+    "news.post2.tag5": "Arabic Language",
+    "news.post2.tag6": "Team of 6",
+    "news.post2.excerpt": "Represented <em>Bayan</em> at the KFUPM Design Expo — our Software Engineering capstone project. Bayan is an Arabic language platform that connects learners with native tutors through video calls, custom courses, on-demand sessions, private chat, and a built-in scheduling system. Built with a team of six and shipped as the final showcase before graduation.",
+
+    "news.post3.badge": "Summer 2023 Internship",
+    "news.post3.date": "JUN — AUG 2023 · AL-KHOBAR, SAUDI ARABIA",
+    "news.post3.title": "Software Engineering Internship at SOL",
+    "news.post3.tag1": "Internship",
+    "news.post3.tag2": "Angular",
+    "news.post3.tag3": "TypeScript",
+    "news.post3.tag4": "Figma → Code",
+    "news.post3.tag5": "Frontend",
+    "news.post3.tag6": "Code Review",
+    "news.post3.excerpt": "My first taste of production frontend work. Spent the summer at SOL building a modular Angular + TypeScript application — shipped the landing page, helped build the Team Members feature, translated Figma designs into responsive components, ironed out cross-device bugs, and took part in code reviews focused on documentation and reuse.",
+
+    "news.post4.badge": "Graduated",
+    "news.post4.badgeSub": "KFUPM · Class of 2024 · Batch 54",
+    "news.post4.date": "JAN 2024 · KFUPM, SAUDI ARABIA",
+    "news.post4.title": "B.Sc. Software Engineering — Two Scholarships, Second Honors",
+    "news.post4.tag1": "Graduation",
+    "news.post4.tag2": "Entrance Scholarship",
+    "news.post4.tag3": "Full Tuition Waiver",
+    "news.post4.tag4": "GPA 3.56 / 4.0",
+    "news.post4.tag5": "Second Honors",
+    "news.post4.tag6": "Batch 54",
+    "news.post4.excerpt": "Graduated from <strong>King Fahd University of Petroleum &amp; Minerals</strong> — one of the top engineering schools in the region — with a B.Sc. in Software Engineering and <strong>Second Class Honors</strong> (GPA 3.56 / 4.0). KFUPM backed me with <strong>two scholarships</strong> along the way: an entrance scholarship that opened the door, and a merit-based tuition waiver that covered every remaining fee once my GPA was high enough to qualify. Closed out as part of <strong>Batch 54</strong> with five Dean's Honor List recognitions and a capstone project (Bayan) showcased at the KFUPM Design Expo.",
+
+    "news.post5.gradeLabel": "Final Grade",
+    "news.post5.course": "SWE 412 · Bayan · KFUPM",
+    "news.post5.date": "NOV 2023 · KFUPM, SAUDI ARABIA",
+    "news.post5.title": "Senior Project Defense — Bayan Earned an “A”",
+    "news.post5.tag1": "Senior Project",
+    "news.post5.tag2": "1-Year Project",
+    "news.post5.tag3": "Chair Defense",
+    "news.post5.tag4": "Grade: A",
+    "news.post5.tag5": "SWE 412",
+    "news.post5.tag6": "Team of 6",
+    "news.post5.excerpt": "After a full year of building, we presented <em>Bayan</em> to the department chair for the SWE 412 senior-project defense — design decisions, system architecture, the Node.js + MongoDB backend, the 100ms-powered video layer, and every user-facing feature. The project earned an <strong>“A”</strong>, clearing the way to take Bayan to the public KFUPM Design Expo a few weeks later.",
+
+    "news.post6.badge": "Honored on Stage",
+    "news.post6.badgeSub": "KFUPM · 17th Commencement",
+    "news.post6.date": "FEB 2024 · KFUPM, SAUDI ARABIA",
+    "news.post6.title": "Honor Students Recognition — 17th KFUPM Commencement",
+    "news.post6.tag1": "Honor Students",
+    "news.post6.tag2": "Dean's Honor List",
+    "news.post6.tag3": "17th Commencement",
+    "news.post6.tag4": "On Stage",
+    "news.post6.tag5": "Class of 2024",
+    "news.post6.tag6": "Family Day",
+    "news.post6.videoBadge": "▶ Live · 36:50",
+    "news.post6.excerpt": "Called up on stage at the <strong>17th KFUPM Commencement</strong> for the Dean's Honor List recognition — the moment that closes years of consistent grades, the entrance scholarship, and the merit-based tuition waiver. A formal cap to the academic chapter, shared with the people who made it possible.",
+
+    "news.post7.badge": "LabSystems",
+    "news.post7.badgeSub": "Summer 2024 · LabVantage Integration",
+    "news.post7.date": "JUN — SEP 2024 · AL-KHOBAR, SAUDI ARABIA",
+    "news.post7.title": "Software Engineering Internship at LabSystems",
+    "news.post7.tag1": "Internship",
+    "news.post7.tag2": "Java",
+    "news.post7.tag3": "JavaScript",
+    "news.post7.tag4": "LabVantage",
+    "news.post7.tag5": "Data Visualization",
+    "news.post7.tag6": "Code Review",
+    "news.post7.excerpt": "First post-graduation role — three months at <strong>LabSystems</strong>. Wrote <strong>Java drivers</strong> that let laboratory instruments connect to the central LabVantage platform, pull data from them in real time, and trigger actions on them from the system. Built report templates wired straight into the LabVantage database, visualised the retrieved data for end-users, and worked across teams to slot modular, secure components into the existing architecture — plus regular code reviews to help onboard new tech.",
+
+    "news.post8.badge": "Backend Developer",
+    "news.post8.badgeSub": "Software Solutions · Al-Khobar",
+    "news.post8.date": "OCT 2024 · AL-KHOBAR, SAUDI ARABIA",
+    "news.post8.title": "Joined UZD Software Solutions as Backend Developer",
+    "news.post8.tag1": "Backend Developer",
+    "news.post8.tag2": "Django REST",
+    "news.post8.tag3": "Python",
+    "news.post8.tag4": "PostgreSQL",
+    "news.post8.tag5": "Scraapy.sa",
+    "news.post8.tag6": "Startup",
+    "news.post8.excerpt": "First full-time backend role — joined <strong>UZD Software Solutions</strong> as a Backend Developer. Built production APIs in <strong>Django REST Framework</strong>, integrated third-party providers, and contributed to the <strong>Scraapy.sa</strong> multi-store scrap marketplace — redesigning the database schema, layering RBAC across user types, building geofenced product suggestions, and writing test suites around every API to lock down behaviour for future iterations.",
+
+    "news.post9.badge": "Promoted · Head Backend Developer",
+    "news.post9.badgeSub": "Tech Lead · Software Solutions",
+    "news.post9.date": "DEC 2024 · AL-KHOBAR, SAUDI ARABIA",
+    "news.post9.title": "Promoted to Head Backend Developer (Tech Lead) at UZD",
+    "news.post9.tag1": "Promotion",
+    "news.post9.tag2": "Tech Lead",
+    "news.post9.tag3": "Architecture",
+    "news.post9.tag4": "Project Estimation",
+    "news.post9.tag5": "O+ · Darah",
+    "news.post9.tag6": "Mentoring",
+    "news.post9.excerpt": "Promoted from Backend Developer to <strong>Head Backend Developer (Tech Lead)</strong>. Took over architecture decisions, project estimation, code reviews, and load distribution across the backend team. Led the backend of <strong>O+ (Al-Ettifaq fan app)</strong> and <strong>Darah (real-estate management system)</strong> — including stepping in to drive a full Darah backend overhaul while the lead was hospitalised, and breaking the monolithic Docker server into three task-specific services. Restructured server APIs to cut external calls and lower infrastructure cost.",
+
+    "news.post10.badge": "Distributed Systems Engineering",
+    "news.post10.badgeSub": "M.Sc. Computer Science · Class of 2028",
+    "news.post10.date": "2026 · DRESDEN, GERMANY",
+    "news.post10.title": "Accepted to TU Dresden — M.Sc. Computer Science",
+    "news.post10.tag1": "Master's Degree",
+    "news.post10.tag2": "Computer Science",
+    "news.post10.tag3": "Distributed Systems",
+    "news.post10.tag4": "TU Dresden",
+    "news.post10.tag5": "Germany",
+    "news.post10.tag6": "Class of 2028",
+    "news.post10.excerpt": "Accepted to <strong>Technische Universität Dresden</strong> — one of Germany's TU9 universities of technology — for an <strong>M.Sc. in Computer Science on the Distributed Systems Engineering track</strong>. The program dives deep into the systems side of computer science: distributed algorithms, scalable architectures, networking, and large-scale data infrastructure. A move from Saudi Arabia to Dresden to take this on full-time.",
+
+    "news.post11.badge": "The Journey Continues",
+    "news.post11.badgeSub": "New chapters being written",
+    "news.post11.date": "··· · ONGOING",
+    "news.post11.title": "To be continued…",
+    "news.post11.excerpt": "New milestones, projects, and challenges are still ahead — in Dresden, in distributed systems, in code, and in everything in between. Check back as the story unfolds.",
+
     "footer": "Designed & built by Asem Kharma · <coded with three.js>"
   },
 
@@ -1967,6 +3358,129 @@ const I18N = {
     "news.soonTitle": "Erster Beitrag in Kürze",
     "news.soonExcerpt": "Hier erscheint eine kurze Zusammenfassung. Text, Bilder und Links werden ergänzt, sobald Beiträge veröffentlicht sind.",
 
+    "news.post1.badge": "Dean's Honor List",
+    "news.post1.badgeSub": "KFUPM · 2019 – 2023",
+    "news.post1.date": "JAN 2023 · KFUPM, SAUDI-ARABIEN",
+    "news.post1.title": "5× Honor Student an der KFUPM",
+    "news.post1.tag1": "Akademisch",
+    "news.post1.tag2": "Software Engineering",
+    "news.post1.tag3": "GPA 3,56",
+    "news.post1.excerpt": "Meine fünfte Auszeichnung auf der Dean's Honor List der King Fahd University of Petroleum & Minerals — Anerkennung für fünf Semester akademischer Bestleistung im Bachelorstudium Software Engineering.",
+    "news.post1.cta": "Zertifikat ansehen",
+
+    "news.post2.badge": "KFUPM Design Expo · Abschlussprojekt",
+    "news.post2.date": "DEZ 2023 · KFUPM, SAUDI-ARABIEN",
+    "news.post2.title": "Bayan — Abschlussprojekt auf der KFUPM Design Expo",
+    "news.post2.tag1": "Abschlussprojekt",
+    "news.post2.tag2": "Node.js",
+    "news.post2.tag3": "MongoDB",
+    "news.post2.tag4": "100ms Video",
+    "news.post2.tag5": "Arabische Sprache",
+    "news.post2.tag6": "6er-Team",
+    "news.post2.excerpt": "Habe <em>Bayan</em> auf der KFUPM Design Expo präsentiert — unser Abschlussprojekt im Software Engineering. Bayan ist eine Plattform zum Lernen der arabischen Sprache, die Lernende über Videoanrufe, eigene Kurse, On-Demand-Sessions, privaten Chat und ein integriertes Terminplanungssystem mit muttersprachlichen Tutoren zusammenbringt. Entwickelt mit einem Team von sechs Personen und kurz vor dem Studienabschluss vorgestellt.",
+
+    "news.post3.badge": "Sommerpraktikum 2023",
+    "news.post3.date": "JUN — AUG 2023 · AL-KHOBAR, SAUDI-ARABIEN",
+    "news.post3.title": "Software-Engineering-Praktikum bei SOL",
+    "news.post3.tag1": "Praktikum",
+    "news.post3.tag2": "Angular",
+    "news.post3.tag3": "TypeScript",
+    "news.post3.tag4": "Figma → Code",
+    "news.post3.tag5": "Frontend",
+    "news.post3.tag6": "Code Review",
+    "news.post3.excerpt": "Mein erster Berührungspunkt mit produktiver Frontend-Arbeit. Den Sommer bei SOL verbracht und eine modulare Angular- + TypeScript-Anwendung mit aufgebaut — die Landingpage ausgeliefert, beim Team-Members-Feature mitgewirkt, Figma-Designs in responsive Komponenten übersetzt, Cross-Device-Bugs behoben und an Code Reviews mit Fokus auf Dokumentation und Wiederverwendung teilgenommen.",
+
+    "news.post4.badge": "Abschluss",
+    "news.post4.badgeSub": "KFUPM · Jahrgang 2024 · Batch 54",
+    "news.post4.date": "JAN 2024 · KFUPM, SAUDI-ARABIEN",
+    "news.post4.title": "B.Sc. Software Engineering — Zwei Stipendien, Second Class Honors",
+    "news.post4.tag1": "Abschluss",
+    "news.post4.tag2": "Einstiegsstipendium",
+    "news.post4.tag3": "Volle Studiengebühren-Befreiung",
+    "news.post4.tag4": "GPA 3,56 / 4,0",
+    "news.post4.tag5": "Second Class Honors",
+    "news.post4.tag6": "Batch 54",
+    "news.post4.excerpt": "Bachelorabschluss an der <strong>King Fahd University of Petroleum &amp; Minerals</strong> — eine der führenden Ingenieurhochschulen der Region — mit B.Sc. in Software Engineering und der Auszeichnung <strong>Second Class Honors</strong> (GPA 3,56 / 4,0). Die KFUPM hat mich mit <strong>zwei Stipendien</strong> unterstützt: ein Einstiegsstipendium, das mir den Weg geöffnet hat, und ein leistungsbezogenes Stipendium, das nach dem Erreichen eines hohen Notendurchschnitts sämtliche restlichen Studiengebühren übernommen hat. Abschluss als Teil von <strong>Batch 54</strong> mit fünf Auszeichnungen auf der Dean's Honor List und einem Abschlussprojekt (Bayan), das auf der KFUPM Design Expo präsentiert wurde.",
+
+    "news.post5.gradeLabel": "Endnote",
+    "news.post5.course": "SWE 412 · Bayan · KFUPM",
+    "news.post5.date": "NOV 2023 · KFUPM, SAUDI-ARABIEN",
+    "news.post5.title": "Abschlussprojekt-Verteidigung — Bayan mit „A“ bewertet",
+    "news.post5.tag1": "Abschlussprojekt",
+    "news.post5.tag2": "1-Jahres-Projekt",
+    "news.post5.tag3": "Verteidigung beim Lehrstuhl",
+    "news.post5.tag4": "Note: A",
+    "news.post5.tag5": "SWE 412",
+    "news.post5.tag6": "6er-Team",
+    "news.post5.excerpt": "Nach einem ganzen Jahr Arbeit haben wir <em>Bayan</em> in der SWE-412-Abschlussverteidigung dem Lehrstuhl präsentiert — Design­entscheidungen, Systemarchitektur, das Node.js- + MongoDB-Backend, die 100ms-Video­ebene und alle Endnutzer-Funktionen. Das Projekt wurde mit <strong>„A“</strong> bewertet und war damit reif für die öffentliche Präsentation wenige Wochen später auf der KFUPM Design Expo.",
+
+    "news.post6.badge": "Auf der Bühne geehrt",
+    "news.post6.badgeSub": "KFUPM · 17. Abschlussfeier",
+    "news.post6.date": "FEB 2024 · KFUPM, SAUDI-ARABIEN",
+    "news.post6.title": "Auszeichnung der Honor Students — 17. KFUPM-Abschlussfeier",
+    "news.post6.tag1": "Honor Students",
+    "news.post6.tag2": "Dean's Honor List",
+    "news.post6.tag3": "17. Abschlussfeier",
+    "news.post6.tag4": "Auf der Bühne",
+    "news.post6.tag5": "Jahrgang 2024",
+    "news.post6.tag6": "Familientag",
+    "news.post6.videoBadge": "▶ Live · 36:50",
+    "news.post6.excerpt": "Auf die Bühne der <strong>17. KFUPM-Abschlussfeier</strong> gerufen für die Auszeichnung der Dean's Honor List — der Moment, der Jahre konstanter Leistungen, das Einstiegsstipendium und das leistungsbezogene Stipendium förmlich abschließt. Ein offizielles Ende des akademischen Kapitels, geteilt mit den Menschen, die es möglich gemacht haben.",
+
+    "news.post7.badge": "LabSystems",
+    "news.post7.badgeSub": "Sommer 2024 · LabVantage-Integration",
+    "news.post7.date": "JUN — SEP 2024 · AL-KHOBAR, SAUDI-ARABIEN",
+    "news.post7.title": "Software-Engineering-Praktikum bei LabSystems",
+    "news.post7.tag1": "Praktikum",
+    "news.post7.tag2": "Java",
+    "news.post7.tag3": "JavaScript",
+    "news.post7.tag4": "LabVantage",
+    "news.post7.tag5": "Datenvisualisierung",
+    "news.post7.tag6": "Code Review",
+    "news.post7.excerpt": "Erste Station nach dem Studium — drei Monate bei <strong>LabSystems</strong>. <strong>Java-Treiber</strong> entwickelt, die Laborinstrumente mit der zentralen LabVantage-Plattform verbinden, Daten in Echtzeit aus den Geräten auslesen und Aktionen aus dem System heraus an ihnen auslösen lassen. Report-Vorlagen direkt an die LabVantage-Datenbank angeschlossen, die ausgelesenen Daten für die Endnutzer visualisiert und mit cross-funktionalen Teams modulare, sichere Komponenten in die bestehende Architektur integriert — dazu regelmäßige Code Reviews zur Einführung neuer Technologien.",
+
+    "news.post8.badge": "Backend Developer",
+    "news.post8.badgeSub": "Software Solutions · Al-Khobar",
+    "news.post8.date": "OKT 2024 · AL-KHOBAR, SAUDI-ARABIEN",
+    "news.post8.title": "Einstieg bei UZD Software Solutions als Backend Developer",
+    "news.post8.tag1": "Backend Developer",
+    "news.post8.tag2": "Django REST",
+    "news.post8.tag3": "Python",
+    "news.post8.tag4": "PostgreSQL",
+    "news.post8.tag5": "Scraapy.sa",
+    "news.post8.tag6": "Start-up",
+    "news.post8.excerpt": "Erste Vollzeit-Backend-Rolle — Einstieg bei <strong>UZD Software Solutions</strong> als Backend Developer. Produktiv genutzte APIs in <strong>Django REST Framework</strong> entwickelt, externe Anbieter integriert und am <strong>Scraapy.sa</strong>-Multi-Store-Marktplatz für Schrott mitgewirkt — Datenbankschema neu entworfen, RBAC über mehrere Nutzertypen gelegt, geofencing-basierte Produktvorschläge gebaut und Testsuiten um jede API geschrieben, um das Verhalten für künftige Iterationen abzusichern.",
+
+    "news.post9.badge": "Befördert · Head Backend Developer",
+    "news.post9.badgeSub": "Tech Lead · Software Solutions",
+    "news.post9.date": "DEZ 2024 · AL-KHOBAR, SAUDI-ARABIEN",
+    "news.post9.title": "Beförderung zum Head Backend Developer (Tech Lead) bei UZD",
+    "news.post9.tag1": "Beförderung",
+    "news.post9.tag2": "Tech Lead",
+    "news.post9.tag3": "Architektur",
+    "news.post9.tag4": "Projektschätzung",
+    "news.post9.tag5": "O+ · Darah",
+    "news.post9.tag6": "Mentoring",
+    "news.post9.excerpt": "Beförderung vom Backend Developer zum <strong>Head Backend Developer (Tech Lead)</strong>. Verantwortung für Architekturentscheidungen, Projektschätzung, Code Reviews und Lastverteilung im Backend-Team übernommen. Backend-Leitung für <strong>O+ (Al-Ettifaq Fan-App)</strong> und <strong>Darah (Immobilien-Management-System)</strong> — inklusive Übernahme einer vollständigen Darah-Backend-Überarbeitung, als der Lead krankheitsbedingt ausfiel, und Aufteilung des monolithischen Docker-Servers in drei spezialisierte Services. Server-APIs umstrukturiert, um externe Aufrufe und Infrastrukturkosten zu reduzieren.",
+
+    "news.post10.badge": "Distributed Systems Engineering",
+    "news.post10.badgeSub": "M.Sc. Informatik · Jahrgang 2028",
+    "news.post10.date": "2026 · DRESDEN, DEUTSCHLAND",
+    "news.post10.title": "Zulassung an der TU Dresden — M.Sc. Informatik",
+    "news.post10.tag1": "Masterstudium",
+    "news.post10.tag2": "Informatik",
+    "news.post10.tag3": "Verteilte Systeme",
+    "news.post10.tag4": "TU Dresden",
+    "news.post10.tag5": "Deutschland",
+    "news.post10.tag6": "Jahrgang 2028",
+    "news.post10.excerpt": "Zulassung an der <strong>Technischen Universität Dresden</strong> — einer der TU9 — für einen <strong>M.Sc. in Informatik mit Schwerpunkt Distributed Systems Engineering</strong>. Das Programm geht tief in die Systemseite der Informatik: verteilte Algorithmen, skalierbare Architekturen, Netzwerke und große Dateninfrastrukturen. Umzug von Saudi-Arabien nach Dresden, um das Studium in Vollzeit aufzunehmen.",
+
+    "news.post11.badge": "Die Reise geht weiter",
+    "news.post11.badgeSub": "Neue Kapitel im Entstehen",
+    "news.post11.date": "··· · LAUFEND",
+    "news.post11.title": "Fortsetzung folgt…",
+    "news.post11.excerpt": "Neue Meilensteine, Projekte und Herausforderungen stehen noch bevor — in Dresden, in verteilten Systemen, im Code und in allem dazwischen. Schau wieder vorbei, sobald die Geschichte weitergeht.",
+
     "footer": "Entworfen & gebaut von Asem Kharma · <coded with three.js>"
   },
 
@@ -2100,6 +3614,129 @@ const I18N = {
     "news.soonDate": "قريباً",
     "news.soonTitle": "أول منشور قادم",
     "news.soonExcerpt": "هنا سيظهر ملخص قصير للمنشور. سيُضاف النص والصور والروابط مع نشر المحتوى لاحقاً.",
+
+    "news.post1.badge": "قائمة شرف العميد",
+    "news.post1.badgeSub": "جامعة الملك فهد · 2019 – 2023",
+    "news.post1.date": "يناير 2023 · جامعة الملك فهد، السعودية",
+    "news.post1.title": "خامس شهادة قائمة شرف من جامعة الملك فهد",
+    "news.post1.tag1": "أكاديمي",
+    "news.post1.tag2": "هندسة البرمجيات",
+    "news.post1.tag3": "معدل 3.56",
+    "news.post1.excerpt": "حصلت على شهادة قائمة شرف العميد الخامسة من جامعة الملك فهد للبترول والمعادن — تقدير لخمسة فصول دراسية من التفوق الأكاديمي خلال بكالوريوس هندسة البرمجيات.",
+    "news.post1.cta": "عرض الشهادة",
+
+    "news.post2.badge": "معرض التصاميم بجامعة الملك فهد · مشروع التخرج",
+    "news.post2.date": "ديسمبر 2023 · جامعة الملك فهد، السعودية",
+    "news.post2.title": "بَيَان — مشروع التخرج في معرض KFUPM للتصاميم",
+    "news.post2.tag1": "مشروع التخرج",
+    "news.post2.tag2": "Node.js",
+    "news.post2.tag3": "MongoDB",
+    "news.post2.tag4": "مكالمات فيديو 100ms",
+    "news.post2.tag5": "اللغة العربية",
+    "news.post2.tag6": "فريق من 6 أعضاء",
+    "news.post2.excerpt": "قدّمت <em>بَيَان</em> في معرض KFUPM للتصاميم — مشروع التخرج لقسم هندسة البرمجيات. بَيَان منصة لتعلّم اللغة العربية تربط المتعلمين بمعلمين ناطقين بها عبر مكالمات الفيديو، ودورات يصنعها المعلمون أنفسهم، وجلسات حسب الطلب، ودردشة خاصة، ونظام جدولة مدمج. تم بناؤها بفريق من ستة أشخاص وقُدّمت كآخر عرض قبل التخرج.",
+
+    "news.post3.badge": "تدريب صيف 2023",
+    "news.post3.date": "يونيو — أغسطس 2023 · الخبر، السعودية",
+    "news.post3.title": "تدريب هندسة البرمجيات في SOL",
+    "news.post3.tag1": "تدريب",
+    "news.post3.tag2": "Angular",
+    "news.post3.tag3": "TypeScript",
+    "news.post3.tag4": "Figma إلى كود",
+    "news.post3.tag5": "Frontend",
+    "news.post3.tag6": "مراجعة كود",
+    "news.post3.excerpt": "أول تجربة لي في تطوير frontend إنتاجي. قضيت الصيف في SOL مساهماً في بناء تطبيق Angular وTypeScript مرن — أطلقت صفحة الهبوط، وشاركت في ميزة فريق العمل (Team Members)، وحوّلت تصاميم Figma إلى مكونات متجاوبة، وعالجت مشاكل التجاوب بين الأجهزة، وشاركت في مراجعات الكود مع التركيز على التوثيق وقابلية إعادة الاستخدام.",
+
+    "news.post4.badge": "تخرّجت",
+    "news.post4.badgeSub": "جامعة الملك فهد · دفعة 2024 · الدفعة 54",
+    "news.post4.date": "يناير 2024 · جامعة الملك فهد، السعودية",
+    "news.post4.title": "بكالوريوس هندسة البرمجيات — منحتان ومرتبة الشرف الثانية",
+    "news.post4.tag1": "التخرّج",
+    "news.post4.tag2": "منحة قبول",
+    "news.post4.tag3": "إعفاء كامل من الرسوم",
+    "news.post4.tag4": "معدل 3.56 / 4.0",
+    "news.post4.tag5": "مرتبة الشرف الثانية",
+    "news.post4.tag6": "الدفعة 54",
+    "news.post4.excerpt": "تخرّجت من <strong>جامعة الملك فهد للبترول والمعادن</strong> — إحدى أبرز جامعات الهندسة في المنطقة — ببكالوريوس هندسة البرمجيات وب<strong>مرتبة الشرف الثانية</strong> (معدل 3.56 / 4.0). دعمتني الجامعة <strong>بمنحتين</strong> خلال مشواري: منحة قبول فتحت لي باب الالتحاق، ومنحة استحقاق دراسي أعفت جميع الرسوم المتبقية بفضل المعدل العالي الذي حافظت عليه. أنهيت دراستي ضمن <strong>الدفعة 54</strong> مع خمس شهادات قائمة شرف العميد، ومشروع تخرّج (بَيَان) عُرض في معرض KFUPM للتصاميم.",
+
+    "news.post5.gradeLabel": "الدرجة النهائية",
+    "news.post5.course": "SWE 412 · بَيَان · جامعة الملك فهد",
+    "news.post5.date": "نوفمبر 2023 · جامعة الملك فهد، السعودية",
+    "news.post5.title": "مناقشة مشروع التخرّج — حصلت بَيَان على تقدير «A»",
+    "news.post5.tag1": "مشروع التخرّج",
+    "news.post5.tag2": "مشروع لمدة عام",
+    "news.post5.tag3": "مناقشة أمام رئيس القسم",
+    "news.post5.tag4": "التقدير: A",
+    "news.post5.tag5": "SWE 412",
+    "news.post5.tag6": "فريق من 6",
+    "news.post5.excerpt": "بعد سنة كاملة من العمل، قدّمنا <em>بَيَان</em> أمام رئيس قسم هندسة البرمجيات في مناقشة مشروع التخرّج SWE 412 — قرارات التصميم، ومعمارية النظام، وخادم Node.js مع MongoDB، وطبقة الفيديو المعتمدة على 100ms، وجميع المزايا التي يراها المستخدم. حصل المشروع على تقدير <strong>«A»</strong>، مما مهّد الطريق لعرض بَيَان للجمهور بعد أسابيع قليلة في معرض KFUPM للتصاميم.",
+
+    "news.post6.badge": "تكريم على المسرح",
+    "news.post6.badgeSub": "جامعة الملك فهد · حفل التخرّج السابع عشر",
+    "news.post6.date": "فبراير 2024 · جامعة الملك فهد، السعودية",
+    "news.post6.title": "تكريم طلاب الشرف — حفل التخرّج السابع عشر بجامعة الملك فهد",
+    "news.post6.tag1": "طلاب الشرف",
+    "news.post6.tag2": "قائمة شرف العميد",
+    "news.post6.tag3": "الحفل السابع عشر",
+    "news.post6.tag4": "على المسرح",
+    "news.post6.tag5": "دفعة 2024",
+    "news.post6.tag6": "حفل العائلة",
+    "news.post6.videoBadge": "▶ بث · 36:50",
+    "news.post6.excerpt": "صعدت على مسرح <strong>حفل التخرّج السابع عشر بجامعة الملك فهد</strong> لتكريم طلاب قائمة شرف العميد — لحظة تُتوّج سنوات من الحفاظ على المعدل العالي، ومنحة القبول، ومنحة الإعفاء من الرسوم. ختام رسمي للفصل الأكاديمي، مشترك مع الذين جعلوه ممكناً.",
+
+    "news.post7.badge": "LabSystems",
+    "news.post7.badgeSub": "صيف 2024 · تكامل مع LabVantage",
+    "news.post7.date": "يونيو — سبتمبر 2024 · الخبر، السعودية",
+    "news.post7.title": "تدريب هندسة البرمجيات في LabSystems",
+    "news.post7.tag1": "تدريب",
+    "news.post7.tag2": "Java",
+    "news.post7.tag3": "JavaScript",
+    "news.post7.tag4": "LabVantage",
+    "news.post7.tag5": "عرض البيانات بصرياً",
+    "news.post7.tag6": "مراجعة الكود",
+    "news.post7.excerpt": "أول وظيفة بعد التخرّج — ثلاثة أشهر في <strong>LabSystems</strong>. كتبت <strong>مشغّلات Java</strong> تتيح لأجهزة المختبر الاتصال بمنصة LabVantage المركزية، وسحب البيانات منها في الوقت الفعلي، وتنفيذ أوامر عليها انطلاقاً من النظام. بنيت قوالب تقارير موصولة مباشرة بقاعدة بيانات LabVantage، وعرضت البيانات المسحوبة بصرياً للمستخدم النهائي، وتعاونت مع فرق متعددة لإدماج مكونات معيارية وآمنة في البنية القائمة — إلى جانب مراجعات منتظمة للكود لدعم الفريق في تبنّي تقنيات جديدة.",
+
+    "news.post8.badge": "مطوّر Backend",
+    "news.post8.badgeSub": "Software Solutions · الخبر",
+    "news.post8.date": "أكتوبر 2024 · الخبر، السعودية",
+    "news.post8.title": "الانضمام إلى UZD Software Solutions كمطوّر Backend",
+    "news.post8.tag1": "مطوّر Backend",
+    "news.post8.tag2": "Django REST",
+    "news.post8.tag3": "Python",
+    "news.post8.tag4": "PostgreSQL",
+    "news.post8.tag5": "Scraapy.sa",
+    "news.post8.tag6": "شركة ناشئة",
+    "news.post8.excerpt": "أول وظيفة بدوام كامل في الـ backend — انضممت إلى <strong>UZD Software Solutions</strong> كمطوّر Backend. بنيت واجهات APIs إنتاجية بـ <strong>Django REST Framework</strong>، ودمجت مزودي بيانات خارجيين، وساهمت في منصة <strong>Scraapy.sa</strong> متعددة المتاجر لتجارة الخردة — إعادة تصميم مخطط قاعدة البيانات، وصلاحيات متعددة المستويات (RBAC)، واقتراحات منتجات بالجغرافيا، وكتابة اختبارات حول كل API لتثبيت السلوك مع التغييرات المستقبلية.",
+
+    "news.post9.badge": "ترقية · رئيس مطوري Backend",
+    "news.post9.badgeSub": "قائد تقني · Software Solutions",
+    "news.post9.date": "ديسمبر 2024 · الخبر، السعودية",
+    "news.post9.title": "ترقية إلى رئيس مطوري Backend (قائد تقني) في UZD",
+    "news.post9.tag1": "ترقية",
+    "news.post9.tag2": "قائد تقني",
+    "news.post9.tag3": "المعمارية",
+    "news.post9.tag4": "تقدير المشاريع",
+    "news.post9.tag5": "O+ · دارة",
+    "news.post9.tag6": "إرشاد الفريق",
+    "news.post9.excerpt": "ترقية من مطوّر Backend إلى <strong>رئيس مطوري Backend (قائد تقني)</strong>. تولّيت القرارات المعمارية، وتقدير المشاريع، ومراجعات الكود، وتوزيع المهام داخل فريق الـ backend. قدت الجانب الخلفي لتطبيقَي <strong>O+ (تطبيق نادي الاتفاق)</strong> و<strong>دارة (نظام إدارة عقارية)</strong> — بما في ذلك قيادة إعادة هيكلة كاملة للـ backend في دارة أثناء غياب القائد التقني لظرف صحي، وتقسيم خادم Docker الأحادي إلى ثلاث خدمات متخصصة. أعدت هيكلة الـ APIs لتقليل الاستدعاءات الخارجية وخفض التكلفة التشغيلية.",
+
+    "news.post10.badge": "هندسة الأنظمة الموزعة",
+    "news.post10.badgeSub": "ماجستير علوم الحاسب · دفعة 2028",
+    "news.post10.date": "2026 · درسدن، ألمانيا",
+    "news.post10.title": "القبول في جامعة TU Dresden — ماجستير علوم الحاسب",
+    "news.post10.tag1": "ماجستير",
+    "news.post10.tag2": "علوم الحاسب",
+    "news.post10.tag3": "أنظمة موزعة",
+    "news.post10.tag4": "TU Dresden",
+    "news.post10.tag5": "ألمانيا",
+    "news.post10.tag6": "دفعة 2028",
+    "news.post10.excerpt": "تم قبولي في <strong>جامعة TU Dresden التقنية</strong> — إحدى جامعات TU9 التقنية في ألمانيا — لدراسة <strong>ماجستير علوم الحاسب في تخصّص هندسة الأنظمة الموزعة</strong>. يتعمّق البرنامج في الجانب النظامي من علوم الحاسب: الخوارزميات الموزعة، والمعماريات القابلة للتوسع، والشبكات، والبنية التحتية للبيانات على نطاق واسع. انتقال من السعودية إلى درسدن للتفرّغ الكامل للدراسة.",
+
+    "news.post11.badge": "المسيرة مستمرّة",
+    "news.post11.badgeSub": "فصول جديدة قيد الكتابة",
+    "news.post11.date": "··· · جارٍ",
+    "news.post11.title": "يُتبع…",
+    "news.post11.excerpt": "محطّات ومشاريع وتحدّيات جديدة لا تزال أمامنا — في درسدن، في الأنظمة الموزعة، في الكود، وفي كل ما بينها. عُد لاحقاً لتتابع تفاصيل الفصول القادمة.",
 
     "footer": "تصميم وبرمجة: عاصم خرما · <coded with three.js>"
   }
@@ -2636,8 +4273,113 @@ if (cvModal) {
   cvModal.querySelector('.cv-modal-backdrop')?.addEventListener('click', closeCv);
 }
 
-// Closing keys: ESC closes whichever overlay is open
+// ===================== MEDIA LIGHTBOX (photos + videos) =====================
+const lightbox = document.getElementById('img-lightbox');
+const lightboxImg = lightbox?.querySelector('.img-lightbox-img');
+const lightboxFrame = lightbox?.querySelector('.img-lightbox-frame');
+const lightboxCounter = lightbox?.querySelector('.img-lightbox-counter');
+const lightboxYtLink = lightbox?.querySelector('.img-lightbox-yt-link');
+let lbGallery = [];
+let lbIndex = 0;
+
+const isVideoItem = (el) => el && el.classList.contains('np-video');
+
+function openLightbox(gallery, index) {
+  if (!lightbox || !gallery.length) return;
+  lbGallery = gallery;
+  lbIndex = index;
+  lightbox.classList.toggle('single', gallery.length < 2);
+  showLightbox();
+  lightbox.classList.add('open');
+  lightbox.setAttribute('aria-hidden', 'false');
+  document.body.classList.add('lightbox-open');
+}
+
+function closeLightbox() {
+  if (!lightbox) return;
+  lightbox.classList.remove('open');
+  lightbox.classList.remove('video-mode');
+  lightbox.setAttribute('aria-hidden', 'true');
+  document.body.classList.remove('lightbox-open');
+  // Free memory and stop video playback after the close transition
+  setTimeout(() => {
+    if (lightbox.classList.contains('open')) return;
+    if (lightboxImg) lightboxImg.removeAttribute('src');
+    if (lightboxFrame) lightboxFrame.src = 'about:blank';
+  }, 350);
+}
+
+function showLightbox() {
+  const item = lbGallery[lbIndex];
+  if (!item) return;
+  const video = isVideoItem(item);
+
+  if (video && lightboxFrame) {
+    if (lightboxImg) { lightboxImg.style.display = 'none'; lightboxImg.removeAttribute('src'); }
+    // Must be `block` (not '') because the CSS rule defaults the iframe to `display: none`.
+    lightboxFrame.style.display = 'block';
+    // Re-trigger the pop-in animation
+    lightboxFrame.style.animation = 'none';
+    void lightboxFrame.offsetWidth;
+    lightboxFrame.style.animation = '';
+    const src = item.getAttribute('data-video-src') || '';
+    if (lightboxFrame.getAttribute('src') !== src) lightboxFrame.src = src;
+    // Fallback link — shown under the player. Points to the regular YouTube URL with the same timestamp.
+    if (lightboxYtLink) {
+      const fallback = item.getAttribute('data-video-fallback') || src.replace('/embed/', '/watch?v=').replace('?start=', '?v=$1&t=').replace('&amp;', '&');
+      lightboxYtLink.href = fallback;
+    }
+    lightbox.classList.add('video-mode');
+  } else if (lightboxImg) {
+    if (lightboxFrame) { lightboxFrame.style.display = 'none'; lightboxFrame.src = 'about:blank'; }
+    lightbox.classList.remove('video-mode');
+    lightboxImg.style.display = 'block';
+    lightboxImg.style.animation = 'none';
+    void lightboxImg.offsetWidth;
+    lightboxImg.style.animation = '';
+    lightboxImg.src = item.href || item.querySelector('img')?.src || '';
+    lightboxImg.alt = item.getAttribute('aria-label') || '';
+  }
+
+  if (lightboxCounter) lightboxCounter.textContent = `${lbIndex + 1} / ${lbGallery.length}`;
+}
+
+function prevLightbox() {
+  if (lbGallery.length < 2) return;
+  lbIndex = (lbIndex - 1 + lbGallery.length) % lbGallery.length;
+  showLightbox();
+}
+function nextLightbox() {
+  if (lbGallery.length < 2) return;
+  lbIndex = (lbIndex + 1) % lbGallery.length;
+  showLightbox();
+}
+
+// Click delegation — catches both .np-photo and .np-video; works for lazy-rendered posts
+document.addEventListener('click', (e) => {
+  const item = e.target.closest('.np-photo, .np-video');
+  if (!item) return;
+  e.preventDefault();
+  const container = item.closest('.news-post-gallery') || item.parentElement;
+  const items = container ? [...container.querySelectorAll('.np-photo, .np-video')] : [item];
+  openLightbox(items, items.indexOf(item));
+});
+
+if (lightbox) {
+  lightbox.querySelector('.img-lightbox-close')?.addEventListener('click', closeLightbox);
+  lightbox.querySelector('.img-lightbox-backdrop')?.addEventListener('click', closeLightbox);
+  lightbox.querySelector('.img-lightbox-prev')?.addEventListener('click', (e) => { e.stopPropagation(); prevLightbox(); });
+  lightbox.querySelector('.img-lightbox-next')?.addEventListener('click', (e) => { e.stopPropagation(); nextLightbox(); });
+}
+
+// Closing keys: ESC closes whichever overlay is open (lightbox > CV modal > news)
 document.addEventListener('keydown', (e) => {
+  if (lightbox?.classList.contains('open')) {
+    if (e.key === 'Escape')     { closeLightbox(); return; }
+    if (e.key === 'ArrowLeft')  { prevLightbox();  return; }
+    if (e.key === 'ArrowRight') { nextLightbox();  return; }
+    return; // swallow other keys while the lightbox is up
+  }
   if (e.key !== 'Escape') return;
   if (cvModal && cvModal.classList.contains('open')) { closeCv(); return; }
   if (document.body.classList.contains('news-open')) closeNews();
