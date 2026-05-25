@@ -849,6 +849,25 @@
     .hero-float .nt-arrow { font-size: 1rem; margin-top: 4px; }
   }
 
+  /* On narrow phones the absolute-positioned cards collide with the hero meta info.
+     Drop them into normal flow so they sit cleanly under the contact links. */
+  @media (max-width: 640px) {
+    .hero-floats {
+      position: static;
+      left: auto; right: auto; bottom: auto;
+      transform: none;
+      align-self: center;
+      margin-top: 28px;
+      animation: none; /* parent doesn't need animation; children still animate in */
+    }
+    .hero-float { width: 160px; padding: 12px 14px; }
+    .hero-float .nt-title { font-size: 0.95rem; }
+    .hero-float .nt-tag { font-size: 0.66rem; }
+    .hero-float .nt-arrow { font-size: 1.05rem; margin-top: 6px; }
+    /* Push the scroll hint down a touch so it doesn't sit too close to the cards */
+    #hero .scroll-hint { bottom: 18px; }
+  }
+
   /* ===== Slide-out main / Slide-in news ===== */
   #main, footer {
     transition: transform 0.7s cubic-bezier(0.7, 0, 0.25, 1), opacity 0.4s ease;
@@ -1852,6 +1871,109 @@
   }
   .news-post-pin--next::after {
     border-color: rgba(244, 114, 182, 0.55);
+  }
+
+  /* ===== "Journey Continues" ribbon banner ===== */
+  /* Wide & short, pointed triangular ends (like a finale flag), spans the full news-map width. */
+  .news-journey {
+    width: 100%;
+    position: relative;
+    z-index: 1;
+    height: 84px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    padding: 0 70px;
+    background: linear-gradient(90deg,
+      rgba(124, 92, 255, 0.22) 0%,
+      rgba(34, 211, 238, 0.24) 50%,
+      rgba(244, 114, 182, 0.22) 100%);
+    clip-path: polygon(
+      0 50%,
+      40px 0,
+      calc(100% - 40px) 0,
+      100% 50%,
+      calc(100% - 40px) 100%,
+      40px 100%
+    );
+    overflow: hidden;
+    margin-top: -20px;
+  }
+  .news-journey::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: conic-gradient(from 90deg at 50% 50%,
+      rgba(124, 92, 255, 0.18), transparent 25%,
+      rgba(34, 211, 238, 0.16) 50%, transparent 75%);
+    animation: honor-spin 24s linear infinite;
+    pointer-events: none;
+  }
+  .news-journey-text {
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .news-journey-label {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.28em;
+    background: linear-gradient(135deg, #7c5cff 0%, #22d3ee 50%, #f472b6 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    padding-left: 0.28em;
+    line-height: 1;
+  }
+  .news-journey-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.62rem;
+    letter-spacing: 0.10em;
+    color: rgba(255,255,255,0.72);
+    text-transform: uppercase;
+    margin-top: 5px;
+  }
+  .news-journey-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    position: relative;
+    z-index: 1;
+  }
+  .news-journey-dots span {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c5cff, #22d3ee, #f472b6);
+    animation: next-dot-pulse 1.6s ease-in-out infinite;
+    box-shadow: 0 0 14px rgba(124, 92, 255, 0.55);
+  }
+  .news-journey-dots--left  span:nth-child(1) { animation-delay: 0.00s; }
+  .news-journey-dots--left  span:nth-child(2) { animation-delay: 0.18s; }
+  .news-journey-dots--left  span:nth-child(3) { animation-delay: 0.36s; }
+  .news-journey-dots--right span:nth-child(1) { animation-delay: 0.36s; }
+  .news-journey-dots--right span:nth-child(2) { animation-delay: 0.18s; }
+  .news-journey-dots--right span:nth-child(3) { animation-delay: 0.00s; }
+
+  @media (max-width: 700px) {
+    .news-journey {
+      height: 70px;
+      padding: 0 40px;
+      gap: 14px;
+      clip-path: polygon(
+        0 50%,
+        24px 0,
+        calc(100% - 24px) 0,
+        100% 50%,
+        calc(100% - 24px) 100%,
+        24px 100%
+      );
+    }
+    .news-journey-label { font-size: 0.92rem; letter-spacing: 0.22em; padding-left: 0.22em; }
+    .news-journey-sub  { font-size: 0.56rem; }
+    .news-journey-dots span { width: 8px; height: 8px; }
   }
 
   /* ===== CV inline modal ===== */
@@ -2948,21 +3070,20 @@
           <p class="news-post-excerpt" data-i18n-html="news.post10.excerpt">Accepted to <strong>Technische Universität Dresden</strong> — one of Germany's TU9 universities of technology — for an <strong>M.Sc. in Computer Science on the Distributed Systems Engineering track</strong>. The program dives deep into the systems side of computer science: distributed algorithms, scalable architectures, networking, and large-scale data infrastructure. A move from Saudi Arabia to Dresden to take this on full-time.</p>
         </div>
       </article>
-      <article class="news-post news-post--next">
-        <span class="news-post-pin news-post-pin--next" aria-label="The story continues">→</span>
-        <div class="news-post-media news-post-media--next" aria-hidden="true">
-          <div class="next-badge">
-            <div class="next-dots"><span></span><span></span><span></span></div>
-            <div class="next-label" data-i18n="news.post11.badge">The Journey Continues</div>
-            <div class="next-sub" data-i18n="news.post11.badgeSub">New chapters being written</div>
-          </div>
+      <!-- Wide triangular ribbon — caps the news timeline. Sits outside the article flow so the
+           map's path-drawing (which only collects .news-post-pin) ends cleanly at pin 10. -->
+      <div class="news-journey" aria-label="The journey continues">
+        <div class="news-journey-dots news-journey-dots--left">
+          <span></span><span></span><span></span>
         </div>
-        <div class="news-post-body">
-          <div class="news-post-date" data-i18n="news.post11.date">··· · ONGOING</div>
-          <h3 class="news-post-title" data-i18n="news.post11.title">To be continued…</h3>
-          <p class="news-post-excerpt" data-i18n-html="news.post11.excerpt">New milestones, projects, and challenges are still ahead — in Dresden, in distributed systems, in code, and in everything in between. Check back as the story unfolds.</p>
+        <div class="news-journey-text">
+          <div class="news-journey-label" data-i18n="news.post11.badge">The Journey Continues</div>
+          <div class="news-journey-sub" data-i18n="news.post11.badgeSub">New chapters being written</div>
         </div>
-      </article>
+        <div class="news-journey-dots news-journey-dots--right">
+          <span></span><span></span><span></span>
+        </div>
+      </div>
     </div>
   </div>
 </template>
