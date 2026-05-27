@@ -210,7 +210,8 @@
     font-weight: 700;
     letter-spacing: -0.04em;
     line-height: 1;
-    background: linear-gradient(135deg, #fff 30%, #8a90a3 100%);
+    /* Brand-signature tri-color: cyan → purple → pink (echoes the scroll progress + finale ribbon) */
+    background: linear-gradient(135deg, #22d3ee 0%, #7c5cff 50%, #f472b6 100%);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -230,8 +231,14 @@
     animation: rise 1s ease-out forwards 0.5s;
   }
   .hero-title strong {
-    color: var(--ink);
-    font-weight: 500;
+    /* Cool duotone on the emphasised phrases — complements the title's tri-color */
+    background: linear-gradient(135deg, #7c5cff 0%, #22d3ee 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+    font-weight: 600;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone; /* keep the gradient consistent when the phrase wraps */
   }
   .hero-meta {
     display: flex;
@@ -2645,7 +2652,7 @@
         <div class="edu-school" data-i18n="edu.ielts.school">IDP — IELTS</div>
         <div class="edu-degree" data-i18n="edu.ielts.deg">English proficiency · Band 7.0</div>
       </div>
-      <div class="edu-date">2022</div>
+      <div class="edu-date">2024</div>
     </div>
   </div>
 </section>
